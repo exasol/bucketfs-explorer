@@ -3,9 +3,9 @@ package com.exasol.bucketfsexplorer;
 public class Configuration {
 
 	private String url;
-	
+
 	private String username;
-	
+
 	private String password;
 
 	public Configuration(String url, String username, String password) {
@@ -38,6 +38,5 @@ public class Configuration {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	
-	
+
 }

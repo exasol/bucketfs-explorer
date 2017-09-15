@@ -4,24 +4,23 @@ import java.util.ArrayList;
 
 import org.apache.xmlrpc.XmlRpcException;
 
-public class BucketFS extends BucketObject{
+public class BucketFS extends BucketObject {
 
 	private String description;
-	
+
 	private Integer httpPort;
-	
+
 	private Integer httpsPort;
-	
+
 	private String disk;
 
 	private ArrayList<Bucket> buckets;
-	
+
 	private Configuration config;
-	
+
 	private int size;
-	
+
 	private XmlRPCAccessLayer xmlRPC;
-	
 
 	public Configuration getConfig() {
 		return config;
@@ -31,7 +30,8 @@ public class BucketFS extends BucketObject{
 		this.config = config;
 	}
 
-	public BucketFS(String bucketFSName, String description, Integer httpPort, Integer httpsPort, String disk, Configuration config, XmlRPCAccessLayer xmlRPC) {
+	public BucketFS(String bucketFSName, String description, Integer httpPort, Integer httpsPort, String disk,
+			Configuration config, XmlRPCAccessLayer xmlRPC) {
 		super(bucketFSName);
 		this.description = description;
 		this.httpPort = httpPort;
@@ -39,7 +39,7 @@ public class BucketFS extends BucketObject{
 		this.disk = disk;
 		this.config = config;
 		this.xmlRPC = xmlRPC;
-		
+
 		buckets = new ArrayList<>();
 	}
 
@@ -66,8 +66,8 @@ public class BucketFS extends BucketObject{
 	public void setHttpsPort(Integer httpsPort) {
 		this.httpsPort = httpsPort;
 	}
-	
-	public void addBucket(Bucket bucket){
+
+	public void addBucket(Bucket bucket) {
 		buckets.add(bucket);
 	}
 
@@ -78,7 +78,7 @@ public class BucketFS extends BucketObject{
 	public boolean isNoPortSet() {
 		return (httpPort == null) && (httpsPort == null);
 	}
-	
+
 	public String getDisk() {
 		return disk;
 	}
@@ -94,15 +94,15 @@ public class BucketFS extends BucketObject{
 	public void setSize(int size) {
 		this.size = size;
 	}
-	
 
-	public void createBucket(Bucket bucket) throws XmlRpcException{
-		
-		xmlRPC.addBucket(this.getId(), bucket.getId(),	bucket.getDescription(),bucket.isPublic(), bucket.getReadPassword(), bucket.getWritePassword() );
-		
+	public void createBucket(Bucket bucket) throws XmlRpcException {
+
+		xmlRPC.addBucket(this.getId(), bucket.getId(), bucket.getDescription(), bucket.isPublic(),
+				bucket.getReadPassword(), bucket.getWritePassword());
+
 		buckets.add(bucket);
 	}
-	
+
 	public XmlRPCAccessLayer getXmlRPC() {
 		return xmlRPC;
 	}
@@ -111,5 +111,4 @@ public class BucketFS extends BucketObject{
 		this.xmlRPC = xmlRPC;
 	}
 
-	
 }

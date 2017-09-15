@@ -5,28 +5,27 @@ import javafx.beans.property.StringProperty;
 
 public abstract class BucketObject {
 
-    public BucketObject(String id) {
-        setId(id);
-    }
+	public BucketObject(String id) {
+		setId(id);
+	}
 
-    private final StringProperty id = new SimpleStringProperty();
+	private final StringProperty id = new SimpleStringProperty();
 
-    public final StringProperty idProperty() {
-        return this.id;
-    }
+	public final StringProperty idProperty() {
+		return this.id;
+	}
 
-    public final String getId() {
-        return this.idProperty().get();
-    }
+	public final String getId() {
+		return this.idProperty().get();
+	}
 
-    public final void setId(final String name) {
-        this.idProperty().set(name);
-    }
+	public final void setId(final String name) {
+		this.idProperty().set(name);
+	}
 
-    
-    @Override
-    public String toString(){
-    	return this.idProperty().get();
-    }
-    
+	@Override
+	public String toString() {
+		return this.idProperty().get();
+	}
+
 }

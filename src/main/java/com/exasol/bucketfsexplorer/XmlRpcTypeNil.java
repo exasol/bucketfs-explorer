@@ -11,9 +11,9 @@ import org.apache.xmlrpc.serializer.TypeSerializer;
 import org.xml.sax.SAXException;
 
 /**
- * This class extends Type Factory Impl to provide concrete type factory for handling
- * Null values. In this case the tag comparison uses NullSerializer.NIL_TAG as opposed
- * to EX_NIL_TAG
+ * This class extends Type Factory Impl to provide concrete type factory for
+ * handling Null values. In this case the tag comparison uses
+ * NullSerializer.NIL_TAG as opposed to EX_NIL_TAG
  *
  * @author zsugiart
  *
@@ -24,14 +24,18 @@ public class XmlRpcTypeNil extends TypeFactoryImpl {
 		super(pController);
 	}
 
-	public TypeParser getParser(XmlRpcStreamConfig pConfig, NamespaceContextImpl pContext, String pURI, String pLocalName) {
-		if (NullSerializer.NIL_TAG.equals(pLocalName) || NullSerializer.EX_NIL_TAG.equals(pLocalName) )return new NullParser();
-		else return super.getParser(pConfig, pContext, pURI, pLocalName);
+	public TypeParser getParser(XmlRpcStreamConfig pConfig, NamespaceContextImpl pContext, String pURI,
+			String pLocalName) {
+		if (NullSerializer.NIL_TAG.equals(pLocalName) || NullSerializer.EX_NIL_TAG.equals(pLocalName))
+			return new NullParser();
+		else
+			return super.getParser(pConfig, pContext, pURI, pLocalName);
 	}
 
 	public TypeSerializer getSerializer(XmlRpcStreamConfig pConfig, Object pObject) throws SAXException {
-		if (pObject instanceof XmlRpcTypeNil) return new NullSerializer();
-		else return super.getSerializer(pConfig, pObject);
+		if (pObject instanceof XmlRpcTypeNil)
+			return new NullSerializer();
+		else
+			return super.getSerializer(pConfig, pObject);
 	}
 }
-
