@@ -1,7 +1,13 @@
 package com.exasol.bucketfsexplorer;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
+import org.apache.http.client.ClientProtocolException;
 import org.apache.xmlrpc.XmlRpcException;
 
 public class BucketFS extends BucketObject {
@@ -43,6 +49,21 @@ public class BucketFS extends BucketObject {
 		buckets = new ArrayList<>();
 	}
 
+	
+	public BucketFS(String description, Integer httpPort, Integer httpsPort, String disk,
+			Configuration config, XmlRPCAccessLayer xmlRPC) {
+		super("new_bucket");
+		this.description = description;
+		this.httpPort = httpPort;
+		this.httpsPort = httpsPort;
+		this.disk = disk;
+		this.config = config;
+		this.xmlRPC = xmlRPC;
+
+		buckets = new ArrayList<>();
+	}
+
+	
 	public String getDescription() {
 		return description;
 	}
@@ -109,6 +130,39 @@ public class BucketFS extends BucketObject {
 
 	public void setXmlRPC(XmlRPCAccessLayer xmlRPC) {
 		this.xmlRPC = xmlRPC;
+	}
+
+	public void deleteBucket(Bucket bucket) throws XmlRpcException, KeyManagementException, ClientProtocolException, NoSuchAlgorithmException, KeyStoreException, IOException, URISyntaxException {
+		
+		
+		bucket.deleteAllFiles();
+		
+		//wait until files are deleted
+		while ( bucket.getFiles().size() > 0 ) {
+			try {
+				
+				Thread.sleep(500);
+				
+			} catch (InterruptedException e) {
+				
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+			
+		xmlRPC.deleteBucket(this.getId(),bucket.getId());
+		
+		buckets.remove(bucket);
+	}
+
+	public void createBucketFS() throws XmlRpcException {
+		
+		getHttpsPort();
+		
+		String nameOfBucketFS = xmlRPC.addBucketFS(getDescription(), getDisk(), getHttpPort(), getHttpsPort());
+		
+		this.setId(nameOfBucketFS);
+		
 	}
 
 }

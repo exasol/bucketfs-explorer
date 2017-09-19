@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -157,7 +160,7 @@ public class MainWindow extends Application {
 					Alert alert = new Alert(AlertType.CONFIRMATION);
 					alert.setTitle("Confirm delete.");
 					alert.setHeaderText("Delete file " + cell.getItem() + "?");
-					alert.setContentText("Do your really want to delete this file?");
+					alert.setContentText("Do you really want to delete this file?");
 
 					Optional<ButtonType> result = alert.showAndWait();
 
@@ -597,7 +600,7 @@ public class MainWindow extends Application {
 		grid.setPadding(new Insets(20, 150, 10, 10));
 
 		TextField exaoperationURL = new TextField();
-		exaoperationURL.setPromptText("e.g. http://localhost");
+		exaoperationURL.setPromptText("https://license_server");
 
 		TextField username = new TextField();
 		username.setPromptText("Username");
@@ -793,6 +796,45 @@ public class MainWindow extends Application {
 				});
 
 				cm.getItems().add(refreshBucketItem);
+				
+				// other menu items...
+				MenuItem deleteBucket = new MenuItem("Delete bucket");
+				deleteBucket.setOnAction(event -> {
+
+					Alert alert = new Alert(AlertType.CONFIRMATION);
+					alert.setTitle("Confirm recursive delete.");
+					alert.setHeaderText("Delete bucket " + item+ "?");
+					alert.setContentText("Do you really want to delete this bucket and all containing files?");
+
+					Optional<ButtonType> result = alert.showAndWait();
+
+					if (result.get() != ButtonType.OK)
+						return;
+					
+					Bucket bucket = (Bucket) item;
+					
+					if (!bucket.isPublic() && bucket.getReadPassword() == null)
+						bucket.setReadPassword(showPasswordDialog("Read password for " + bucket.getName(), ""));
+					
+					if (bucket.getWritePassword() == null)
+						bucket.setWritePassword(showPasswordDialog("Write password for " + bucket.getId(), ""));
+					
+					try {
+						bucket.getBucketFS().deleteBucket(bucket);
+					} catch (XmlRpcException | KeyManagementException | NoSuchAlgorithmException | KeyStoreException | IOException | URISyntaxException e) {
+						
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} finally {
+						
+						 TreeItem c = (TreeItem)treeView.getSelectionModel().getSelectedItem();
+				         boolean remove = c.getParent().getChildren().remove(c);
+
+					}
+					
+				});
+
+				cm.getItems().add(deleteBucket);
 
 			} else if (item instanceof BucketFS) {
 
@@ -829,6 +871,36 @@ public class MainWindow extends Application {
 
 			}
 
+			MenuItem createBucket = new MenuItem("Create bucketFS");
+
+			createBucket.setOnAction(event -> {
+
+				Optional<BucketFS> opt = openCreateBucketFSDialog();
+
+				if (opt.isPresent()) {
+
+					BucketFS bFS = opt.get();
+
+					try {
+						bFS.createBucketFS();
+					} catch (XmlRpcException e) {
+
+						Alert alert = new Alert(AlertType.ERROR);
+						alert.setTitle("Error during bucketFS creation");
+						alert.setHeaderText("Can't create " + bFS.getId() + ".");
+						alert.setContentText(e.getMessage());
+						alert.showAndWait();
+					}
+
+					treeView.getRoot().getChildren().add(new TreeItem<BucketObject>(bFS, new ImageView(bucketFSIcon)));
+
+				}
+
+			});
+
+			cm.getItems().add(createBucket);
+			
+			
 			// other menu items...
 
 			MenuItem reloadItem = new MenuItem("Reset tree");
@@ -869,8 +941,11 @@ public class MainWindow extends Application {
 
 					okButton.setDisable(false);
 
-				}
+				}else {
+					
+					okButton.setDisable(true);
 
+				}
 			}
 		};
 
@@ -966,6 +1041,124 @@ public class MainWindow extends Application {
 		});
 
 		Optional<Bucket> result = dialog.showAndWait();
+
+		return result;
+	}
+
+	
+	private TextField disk;
+	
+	private TextField httpPort;
+	
+	private TextField httpsPort ;
+	
+	private Node okButton2;
+	
+	public Optional<BucketFS> openCreateBucketFSDialog() {
+		ChangeListener<String> textChanged = new ChangeListener<String>() {
+
+			@Override
+			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+
+
+				if (httpPort.getText().matches("[0-9]*"))
+					httpPort.setStyle("");
+				else
+					httpPort.setStyle("-fx-control-inner-background: red");
+				
+				if (httpsPort.getText().matches("[0-9]*"))
+					httpsPort.setStyle("");
+				else
+					httpsPort.setStyle("-fx-control-inner-background: red");
+				
+				
+				if ( ( httpPort.getText().length() == 0 || httpPort.getText().matches("[0-9]*" ) ) && 
+					( httpsPort.getText().length() == 0 || httpsPort.getText().matches("[0-9]*" ) ) && 
+						
+						disk.getText().length() > 0   ) {
+
+					okButton2.setDisable(false);
+
+				} else
+					okButton2.setDisable(true);
+
+			}
+		};
+
+		// Create the custom dialog.
+		Dialog<BucketFS> dialog = new Dialog<>();
+
+		dialog.setTitle("Create BucketFS");
+		dialog.setHeaderText("Create BucketFS");
+
+		dialog.initOwner(stage);
+
+		// Set the icon (must be included in the project).
+		// dialog.setGraphic(new
+		// ImageView(this.getClass().getResource("/exasol.png").toString()));
+
+		// Set the button types.
+		dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+		// Create the username and password labels and fields.
+		GridPane grid = new GridPane();
+		grid.setHgap(10);
+		grid.setVgap(10);
+		grid.setPadding(new Insets(20, 150, 10, 10));
+
+		grid.add(new Label("Description"), 0, 1);
+
+		TextField bucketFSDesc = new TextField();
+
+		grid.add(bucketFSDesc, 1, 1);
+
+		grid.add(new Label("Disk"), 0, 2);
+
+		disk = new TextField();
+
+		grid.add(disk, 1,2);
+
+		grid.add(new Label("HTTP Port"), 0, 3);
+
+		httpPort = new TextField();
+
+		grid.add(httpPort, 1, 3);
+
+		grid.add(new Label("HTTPS Port"), 0, 4);
+
+		httpsPort = new TextField();
+
+		grid.add(httpsPort, 1, 4);
+			
+		// Enable/Disable OK Button depending on all information is entered and
+		// valid
+		okButton2 = dialog.getDialogPane().lookupButton(ButtonType.OK);
+		okButton2.setDisable(true);
+
+		bucketFSDesc.textProperty().addListener(textChanged);
+
+		disk.textProperty().addListener(textChanged);
+		
+		httpPort.textProperty().addListener(textChanged);
+		
+		httpsPort.textProperty().addListener(textChanged);
+		
+		dialog.getDialogPane().setContent(grid);
+
+		// Request focus on the bucketName field by default.
+		Platform.runLater(() -> bucketFSDesc.requestFocus());
+
+		// Convert the result to a bucketFS
+		dialog.setResultConverter(dialogButton -> {
+			if (dialogButton == ButtonType.OK) {
+
+				return new BucketFS( bucketFSDesc.getText(), httpPort.getText().length()>0 ? Integer.valueOf(httpPort.getText()) : null,  httpsPort.getText().length()>0 ? Integer.valueOf(httpsPort.getText()): null, disk.getText(), config, xmlRPC);
+
+			}
+			return null;
+		});
+
+		Optional<BucketFS> result = dialog.showAndWait();
 
 		return result;
 	}

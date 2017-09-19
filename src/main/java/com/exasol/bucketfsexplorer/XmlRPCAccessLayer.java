@@ -6,6 +6,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -150,14 +151,28 @@ public class XmlRPCAccessLayer {
 		return bucketFSs.toArray();
 	}
 
-	public String addBucketFS(String description, String disk, int httpPort, int httpsPort) throws XmlRpcException {
+	
+	//  Method addBucketFS
+	//        Create a new object type BucketFS
+	//
+	//    Function takes a dictionary with parameters.
+	//    Allowed keys are (required fields are marked  with * ):
+	//      description, type: TextLine, Some description of this BucketFS.
+	//    * disk, type: Choice, Disk for BucketFS data.
+	//      http_port, type: Int, Port for FS access.
+	//      https_port, type: Int, Port for SSL encrypted FS access.
+	public String addBucketFS( String description, String disk, Integer httpPort, Integer httpsPort) throws XmlRpcException {
 
 		Map<String, Comparable> map = new HashMap<String, Comparable>();
 
 		map.put("description", description);
 		map.put("disk", disk);
-		map.put("http_port", httpPort);
-		map.put("https_port", httpsPort);
+		
+		if(httpPort != null)
+			map.put("http_port", httpPort);
+		
+		if(httpsPort != null)
+			map.put("https_port", httpsPort);
 
 		Object[] params = new Object[] { map };
 
@@ -190,6 +205,26 @@ public class XmlRPCAccessLayer {
 		Object[] params = new Object[] { map };
 
 		client.execute(bucketFS + ".addBucket", params);
+	}
+
+	
+
+
+
+
+	public void deleteBucket(String bucketFS, String bucketName) throws XmlRpcException {
+		Map<String, Comparable> map = new HashMap<String, Comparable>();
+
+		map.put(bucketName, "");
+
+		Object[] params = new Object[] { map };
+
+		ArrayList<String> para = new ArrayList<>();
+		
+		para.add(bucketName);
+		
+		client.execute(bucketFS + ".deleteSubObject", para);
+		
 	}
 
 }

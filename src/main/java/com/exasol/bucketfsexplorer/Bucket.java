@@ -168,4 +168,10 @@ public class Bucket extends BucketObject {
 		this.name = name;
 	}
 
+	public void deleteAllFiles() throws KeyManagementException, ClientProtocolException, NoSuchAlgorithmException, KeyStoreException, IOException, URISyntaxException, XmlRpcException {
+		for (String f : getFiles() ) 
+			deleteFile(f);
+			
+	}
+
 }
