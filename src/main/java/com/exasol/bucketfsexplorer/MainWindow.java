@@ -24,6 +24,8 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -39,6 +41,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
@@ -248,9 +251,12 @@ public class MainWindow extends Application {
 
 	private boolean establishXMLRPCConnection() {
 
+		
+		
+		
 		while (!xmlRPCConnectionWorks) {
 
-			Optional<Configuration> opt = showLoginDialog();
+			Optional<Configuration> opt = showLoginDialog(config);
 
 			if (opt.isPresent())
 				config = opt.get();
@@ -575,7 +581,7 @@ public class MainWindow extends Application {
 		return password;
 	}
 
-	private Optional<Configuration> showLoginDialog() {
+	private Optional<Configuration> showLoginDialog(Configuration config2) {
 
 		// Create the custom dialog.
 		Dialog<Configuration> dialog = new Dialog<>();
@@ -600,12 +606,24 @@ public class MainWindow extends Application {
 		grid.setPadding(new Insets(20, 150, 10, 10));
 
 		TextField exaoperationURL = new TextField();
+		
+		if(config2 != null)
+			exaoperationURL.setText(config2.getUrl());
+		
 		exaoperationURL.setPromptText("https://license_server");
 
 		TextField username = new TextField();
+		
+		if(config2 != null)
+			username.setText(config2.getUsername());
+		
 		username.setPromptText("Username");
 
 		PasswordField password = new PasswordField();
+		
+		if(config2 != null)
+			password.setText(config2.getPassword());
+		
 		password.setPromptText("Password");
 
 		grid.add(new Label("EXAoperation URL"), 0, 0);
@@ -689,6 +707,9 @@ public class MainWindow extends Application {
 			setContextMenu(cm);
 		}
 
+		
+
+		
 		private ContextMenu createContextMenu(BucketObject item) {
 			ContextMenu cm = new ContextMenu();
 
@@ -707,47 +728,114 @@ public class MainWindow extends Application {
 						if (bucket.getWritePassword() == null)
 							bucket.setWritePassword(showPasswordDialog("Write password for " + bucket.getName(), ""));
 
-						Platform.runLater(new Runnable() {
+						
+						Service<Void> service = new Service<Void>() {
+						    @Override
+						    protected Task<Void> createTask() {
+						        return new Task<Void>() {
+						            @Override
+						            protected Void call()
+						                    throws InterruptedException {
+						                updateMessage("Uploading files. . .");
+						                
+						                
+						                int i =0;
+						                updateProgress(i, files.size());
+						                
+						                try {
 
-							// TODO Show some kind of wait dialog
+											for (File file : files) {
+												bucket.uploadFile(file);
+								                updateProgress(++i, files.size());
+							                    updateMessage("Uploaded "+file.getName());
+												
+											}
 
-							@Override
-							public void run() {
-								try {
+										} catch (IOException | URISyntaxException | XmlRpcException e) {
 
-									for (File file : files)
-										bucket.uploadFile(file);
-
-								} catch (IOException | URISyntaxException | XmlRpcException e) {
-
-									Alert alert = new Alert(AlertType.ERROR);
-									alert.setTitle("Error during upload");
-									alert.setHeaderText("Can't upload file to " + bucket.getName());
-									alert.setContentText(e.getMessage());
-									alert.showAndWait();
-								}
-
-								reloadFilesOfBucket(bucket);
-
-								Platform.runLater(new Runnable() {
-
-									@Override
-									public void run() {
-
-										try {
-											bucket.reloadMetadata();
-										} catch (MalformedURLException | XmlRpcException e) {
-											// TODO Auto-generated catch block
-											e.printStackTrace();
+											Alert alert = new Alert(AlertType.ERROR);
+											alert.setTitle("Error during upload");
+											alert.setHeaderText("Can't upload file to " + bucket.getName());
+											alert.setContentText(e.getMessage());
+											alert.showAndWait();
 										}
 
-										reloadObjectInfo(bucket);
-									}
-								});
+						                updateMessage("Upload finished.");
+						               
+						                
+										Platform.runLater(new Runnable() {
 
-							}
-						});
+											@Override
+											public void run() {
 
+												try {
+													
+													reloadFilesOfBucket(bucket);
+													
+													bucket.reloadMetadata();
+												} catch (MalformedURLException | XmlRpcException e) {
+													Alert alert = new Alert(AlertType.ERROR);
+													alert.setTitle("Error during upload");
+													alert.setHeaderText("Can't upload file to " + bucket.getName());
+													alert.setContentText(e.getMessage());
+													alert.showAndWait();
+												}
+
+												reloadObjectInfo(bucket);
+											}
+										});
+						               						                
+						                return null;
+						            }
+						        };
+						    }
+						};
+
+						
+						Dialog<Boolean> progressDialog = new Dialog<Boolean>();
+
+						progressDialog.setTitle("Upload progress");
+						progressDialog.initOwner(stage);
+
+						// Create the username and password labels and fields.
+						GridPane grid = new GridPane();
+						grid.setHgap(10);
+						grid.setVgap(10);
+						
+						//grid.setPadding(new Insets(20, 150, 10, 10));
+
+						Label statusLabel = new Label("Starting upload");
+						
+						grid.add(statusLabel, 0, 0);
+
+						ProgressBar progbar = new ProgressBar();
+						
+						progbar.setMinWidth(200);
+						
+						grid.add(progbar, 0, 1);
+
+						progressDialog.getDialogPane().setContent(grid);
+						
+	
+						progbar.progressProperty().bind(service.progressProperty());
+						
+			            statusLabel.textProperty().bind(service.messageProperty());
+						
+						progressDialog.show();
+						
+						service.setOnSucceeded(value -> {
+							progressDialog.setResult(Boolean.TRUE);
+					        progressDialog.close();					    
+					     }
+						);
+						
+						service.setOnFailed(value -> {
+							progressDialog.setResult(Boolean.FALSE);
+					        progressDialog.close();					    
+					     }
+						);
+						
+						service.start();
 					}
 
 				});
@@ -821,16 +909,17 @@ public class MainWindow extends Application {
 					
 					try {
 						bucket.getBucketFS().deleteBucket(bucket);
-					} catch (XmlRpcException | KeyManagementException | NoSuchAlgorithmException | KeyStoreException | IOException | URISyntaxException e) {
-						
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} finally {
 						
 						 TreeItem c = (TreeItem)treeView.getSelectionModel().getSelectedItem();
 				         boolean remove = c.getParent().getChildren().remove(c);
 
-					}
+						
+					} catch (XmlRpcException | KeyManagementException | NoSuchAlgorithmException | KeyStoreException | IOException | URISyntaxException e) {
+						
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						
+					} 
 					
 				});
 
@@ -845,57 +934,118 @@ public class MainWindow extends Application {
 
 					Optional<Bucket> opt = openCreateBucketDialog(bucketFS);
 
-					if (opt.isPresent()) {
+					Platform.runLater(new Runnable() {
+						
+						@Override
+						public void run() {
+							if (opt.isPresent()) {
 
-						Bucket b = opt.get();
+								Bucket b = opt.get();
 
-						try {
-							bucketFS.createBucket(b);
-						} catch (XmlRpcException e) {
+								try {
+									bucketFS.createBucket(b);
+								} catch (XmlRpcException e) {
 
-							Alert alert = new Alert(AlertType.ERROR);
-							alert.setTitle("Error during bucket creation");
-							alert.setHeaderText("Can't create " + b.getName() + ".");
-							alert.setContentText(e.getMessage());
-							alert.showAndWait();
+									Alert alert = new Alert(AlertType.ERROR);
+									alert.setTitle("Error during bucket creation");
+									alert.setHeaderText("Can't create " + b.getName() + ".");
+									alert.setContentText(e.getMessage());
+									alert.showAndWait();
+								}
+
+								treeView.getSelectionModel().getSelectedItem().getChildren()
+										.add(new TreeItem<BucketObject>(b, new ImageView(bucketIcon)));
+
+							}
+							
 						}
-
-						treeView.getSelectionModel().getSelectedItem().getChildren()
-								.add(new TreeItem<BucketObject>(b, new ImageView(bucketIcon)));
-
-					}
+					});
 
 				});
 
 				cm.getItems().add(createBucket);
 
+				MenuItem deleteBucketFS = new MenuItem("Delete BucketFS");
+				deleteBucketFS.setOnAction(event -> {
+					
+					BucketFS bucketFS = (BucketFS) item;
+
+					if( bucketFS.getBuckets().size() > 0 ) {
+						
+						Alert alert = new Alert(AlertType.ERROR);
+						alert.setTitle("BucketFS not empty");
+						alert.setHeaderText("The BucketFS " + item+ "is not empty?");
+						alert.setContentText("Can't delete this BucketFS, because it still contains buckets.");
+						
+						return;
+					}
+					
+					Alert alert = new Alert(AlertType.CONFIRMATION);
+					alert.setTitle("Confirm delete.");
+					alert.setHeaderText("Delete BucketFS " + item+ "?");
+					alert.setContentText("Do you really want to delete this BucketFS");
+
+					Optional<ButtonType> result = alert.showAndWait();
+
+					if (result.get() != ButtonType.OK)
+						return;
+					
+					Platform.runLater(new Runnable() {
+						public void run() {
+							// delete bucketFS 
+							try {
+								bucketFS.delete();
+								
+								// delete in Tree
+								 TreeItem c = (TreeItem)treeView.getSelectionModel().getSelectedItem();
+						         boolean remove = c.getParent().getChildren().remove(c);
+								
+							} catch (XmlRpcException e) {
+								
+								Alert alert1 = new Alert(AlertType.ERROR);
+								alert1.setTitle("Error during BucketFS deletion");
+								alert1.setHeaderText("Can't delete " + bucketFS.getId() + ".");
+								alert1.setContentText(e.getMessage());
+								alert1.showAndWait();
+							}
+						}
+					});
+					
+				});
+
+				cm.getItems().add(deleteBucketFS);
+
 			}
 
-			MenuItem createBucket = new MenuItem("Create bucketFS");
+			MenuItem createBucket = new MenuItem("Create BucketFS");
 
 			createBucket.setOnAction(event -> {
+				
+				Optional<BucketFS> opt = openCreateBucketFSDialog(((BucketFS) treeView.getRoot().getChildren().get(0).getValue()).getDisk());
 
-				Optional<BucketFS> opt = openCreateBucketFSDialog();
+				Platform.runLater(new Runnable() {
+					public void run() {
+						if (opt.isPresent()) {
 
-				if (opt.isPresent()) {
+							BucketFS bFS = opt.get();
 
-					BucketFS bFS = opt.get();
+							try {
+								bFS.createBucketFS();
+							} catch (XmlRpcException e) {
 
-					try {
-						bFS.createBucketFS();
-					} catch (XmlRpcException e) {
+								Alert alert = new Alert(AlertType.ERROR);
+								alert.setTitle("Error during BucketFS creation");
+								alert.setHeaderText("Can't create " + bFS.getId() + ".");
+								alert.setContentText(e.getMessage());
+								alert.showAndWait();
+							}
 
-						Alert alert = new Alert(AlertType.ERROR);
-						alert.setTitle("Error during bucketFS creation");
-						alert.setHeaderText("Can't create " + bFS.getId() + ".");
-						alert.setContentText(e.getMessage());
-						alert.showAndWait();
+							treeView.getRoot().getChildren().add(new TreeItem<BucketObject>(bFS, new ImageView(bucketFSIcon)));
+
+						}
 					}
-
-					treeView.getRoot().getChildren().add(new TreeItem<BucketObject>(bFS, new ImageView(bucketFSIcon)));
-
-				}
-
+				});
+				
 			});
 
 			cm.getItems().add(createBucket);
@@ -1045,7 +1195,6 @@ public class MainWindow extends Application {
 		return result;
 	}
 
-	
 	private TextField disk;
 	
 	private TextField httpPort;
@@ -1054,7 +1203,7 @@ public class MainWindow extends Application {
 	
 	private Node okButton2;
 	
-	public Optional<BucketFS> openCreateBucketFSDialog() {
+	public Optional<BucketFS> openCreateBucketFSDialog(String diskName) {
 		ChangeListener<String> textChanged = new ChangeListener<String>() {
 
 			@Override
@@ -1114,7 +1263,7 @@ public class MainWindow extends Application {
 
 		grid.add(new Label("Disk"), 0, 2);
 
-		disk = new TextField();
+		disk = new TextField(diskName);
 
 		grid.add(disk, 1,2);
 

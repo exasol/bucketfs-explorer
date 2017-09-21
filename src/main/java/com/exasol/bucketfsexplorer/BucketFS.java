@@ -165,4 +165,8 @@ public class BucketFS extends BucketObject {
 		
 	}
 
+	public void delete() throws XmlRpcException {
+		xmlRPC.deleteBucketFS(getId());
+	}
+
 }

@@ -208,22 +208,22 @@ public class XmlRPCAccessLayer {
 	}
 
 	
-
-
-
-
 	public void deleteBucket(String bucketFS, String bucketName) throws XmlRpcException {
-		Map<String, Comparable> map = new HashMap<String, Comparable>();
-
-		map.put(bucketName, "");
-
-		Object[] params = new Object[] { map };
 
 		ArrayList<String> para = new ArrayList<>();
 		
 		para.add(bucketName);
 		
 		client.execute(bucketFS + ".deleteSubObject", para);
+		
+	}
+
+	public void deleteBucketFS(String bucketFSName) throws XmlRpcException {
+		ArrayList<String> para = new ArrayList<>();
+		
+		para.add(bucketFSName);
+		
+		client.execute("deleteSubObject", para);
 		
 	}
 
