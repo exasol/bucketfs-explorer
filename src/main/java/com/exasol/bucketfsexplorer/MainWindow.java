@@ -26,11 +26,14 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -333,6 +336,8 @@ public class MainWindow extends Application {
 
 			// bucketName.setPrefWidth(80);
 
+			bucketName.setEditable(false);
+			
 			bucketName.prefColumnCountProperty().bind(bucketName.textProperty().length());
 
 			objectInfo.add(bucketName, 1, 0);
@@ -376,6 +381,12 @@ public class MainWindow extends Application {
 
 			objectInfo.add(path, 3, 1);
 
+			Button saveButton = new Button("Save");
+
+			saveButton.setDisable(true);
+			
+			objectInfo.add(saveButton, 4, 1);
+			
 		} else if (obj instanceof BucketFS) {
 			BucketFS b = (BucketFS) obj;
 
@@ -383,6 +394,8 @@ public class MainWindow extends Application {
 
 			TextField bucketName = new TextField(b.getId());
 
+			bucketName.setEditable(false);
+			
 			// bucketName.prefColumnCountProperty().bind(bucketName.textProperty().length());
 
 			bucketName.setMinWidth(50);
@@ -403,6 +416,8 @@ public class MainWindow extends Application {
 
 			TextField disk = new TextField(b.getDisk());
 
+			disk.setEditable(false);
+			
 			disk.setMaxWidth(70);
 
 			objectInfo.add(disk, 5, 0);
@@ -426,15 +441,75 @@ public class MainWindow extends Application {
 			objectInfo.add(new Label("Size"), 4, 1);
 
 			TextField size = new TextField(humanReadableByteCount(b.getSize(), false));
-
+					
 			size.setMaxWidth(70);
 
 			size.setEditable(false);
 
 			objectInfo.add(size, 5, 1);
+			
+			Button saveButton = new Button("Save");
 
+			saveButton.setDisable(true);
+			
+			objectInfo.add(saveButton, 6, 1);
+			
+			ChangeListener<String> textChanged = new ChangeListener<String>() {
+
+				@Override
+				public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+
+
+					if (httpPort.getText().matches("[0-9]*") || httpPort.getText().equals("Not set"))
+						httpPort.setStyle("");
+					else
+						httpPort.setStyle("-fx-control-inner-background: red");
+					
+					if (httpsPort.getText().matches("[0-9]*") || httpsPort.getText().equals("Not set"))
+						httpsPort.setStyle("");
+					else
+						httpsPort.setStyle("-fx-control-inner-background: red");
+					
+					
+					if ( ( httpPort.getText().equals("Not set")|| httpPort.getText().matches("[0-9]*" ) ) && 
+						( httpsPort.getText().equals("Not set")|| httpsPort.getText().matches("[0-9]*" ) ) ) {
+
+						saveButton.setDisable(false);
+
+					} else
+						saveButton.setDisable(true);
+
+				}
+			};
+
+			bucketDesc.textProperty().addListener(textChanged);
+		
+			httpPort.textProperty().addListener(textChanged);
+
+			httpsPort.textProperty().addListener(textChanged);
+			
+			saveButton.setOnAction(new EventHandler<ActionEvent>() {
+	            @Override 
+	            public void handle(ActionEvent e) {
+	            	
+	            	try {
+						b.editBucketFs(bucketDesc.getText(),httpPort.getText(),httpsPort.getText());
+						
+						saveButton.setDisable(true);
+					} catch (XmlRpcException e1) {
+						Alert alert = new Alert(AlertType.ERROR);
+						alert.setTitle("Error during editing BucketFS.");
+						alert.setHeaderText("Can't edit " + b.getId() + ".");
+						alert.setContentText(e1.getMessage());
+						alert.showAndWait();
+					} finally {
+						
+						//if something went wrong the old state will be displayed
+						//reloadObjectInfo(b);
+					}
+	            }
+	        });			
 		}
-
 	}
 
 	private static String humanReadableByteCount(long bytes, boolean si) {
@@ -448,9 +523,11 @@ public class MainWindow extends Application {
 
 	private void reloadFilesOfBucket(BucketObject obj) {
 
+		
+		data.clear();
+		
 		if (obj instanceof Bucket) {
-			data.clear();
-
+		
 			Bucket bucket = (Bucket) obj;
 
 			// Check if bucket has http/https port set
@@ -609,6 +686,9 @@ public class MainWindow extends Application {
 		
 		if(config2 != null)
 			exaoperationURL.setText(config2.getUrl());
+		else
+			exaoperationURL.setText("https://");
+
 		
 		exaoperationURL.setPromptText("https://license_server");
 
@@ -616,6 +696,8 @@ public class MainWindow extends Application {
 		
 		if(config2 != null)
 			username.setText(config2.getUsername());
+		else
+			username.setText("admin");
 		
 		username.setPromptText("Username");
 
@@ -974,8 +1056,9 @@ public class MainWindow extends Application {
 						
 						Alert alert = new Alert(AlertType.ERROR);
 						alert.setTitle("BucketFS not empty");
-						alert.setHeaderText("The BucketFS " + item+ "is not empty?");
+						alert.setHeaderText("The BucketFS " + item+ " is not empty!");
 						alert.setContentText("Can't delete this BucketFS, because it still contains buckets.");
+						alert.showAndWait();
 						
 						return;
 					}
@@ -997,8 +1080,8 @@ public class MainWindow extends Application {
 								bucketFS.delete();
 								
 								// delete in Tree
-								 TreeItem c = (TreeItem)treeView.getSelectionModel().getSelectedItem();
-						         boolean remove = c.getParent().getChildren().remove(c);
+								TreeItem c = (TreeItem)treeView.getSelectionModel().getSelectedItem();
+						        boolean remove = c.getParent().getChildren().remove(c);
 								
 							} catch (XmlRpcException e) {
 								

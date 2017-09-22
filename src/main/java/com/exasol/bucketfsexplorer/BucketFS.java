@@ -169,4 +169,17 @@ public class BucketFS extends BucketObject {
 		xmlRPC.deleteBucketFS(getId());
 	}
 
+	public void editBucketFs(String bucketDesc, String httpPortNew, String httpsPortNew) throws XmlRpcException {
+		
+		xmlRPC.editBucketFS(getId(),bucketDesc,getDisk(), (httpPortNew.matches("[0-9]*") ?  Integer.valueOf(httpPortNew) : null) , (httpsPortNew.matches("[0-9]*") ?  Integer.valueOf(httpsPortNew) : null ) );
+		
+		this.setDescription(bucketDesc);
+		if(httpPortNew.matches("[0-9]*") )
+			this.setHttpPort(Integer.getInteger(httpPortNew));
+		
+		if(httpsPortNew.matches("[0-9]*"))
+			this.setHttpsPort(Integer.getInteger(httpsPortNew) );
+		
+	}
+
 }

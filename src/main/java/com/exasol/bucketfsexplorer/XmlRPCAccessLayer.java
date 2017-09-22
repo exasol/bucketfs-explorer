@@ -161,6 +161,7 @@ public class XmlRPCAccessLayer {
 	//    * disk, type: Choice, Disk for BucketFS data.
 	//      http_port, type: Int, Port for FS access.
 	//      https_port, type: Int, Port for SSL encrypted FS access.
+	
 	public String addBucketFS( String description, String disk, Integer httpPort, Integer httpsPort) throws XmlRpcException {
 
 		Map<String, Comparable> map = new HashMap<String, Comparable>();
@@ -179,6 +180,37 @@ public class XmlRPCAccessLayer {
 		return (String) client.execute("addBucketFS", params);
 	}
 
+	
+	//	  Method editBucketFS
+	//	         Edits object.
+	//
+	//	    Function take a dictionary with parameters and return a list of fields, that was modified.
+	//	    Allowed keys are (required fields are marked  with * ):
+	//	      description, type: TextLine, Some description of this BucketFS.
+	//	    * disk, type: Choice, Disk for BucketFS data.
+	//	      http_port, type: Int, Port for FS access.
+	//	      https_port, type: Int, Port for SSL encrypted FS access.
+	
+	public Object editBucketFS(String bucketFSName, String description, String disk, Integer httpPort, Integer httpsPort) throws XmlRpcException {
+
+		Map<String, Comparable> map = new HashMap<String, Comparable>();
+
+		map.put("description", description);
+		map.put("disk", disk);
+		
+		if(httpPort != null)
+			map.put("http_port", httpPort);
+		
+		if(httpsPort != null)
+			map.put("https_port", httpsPort);
+
+		Object[] params = new Object[] { map };
+
+		return client.execute(bucketFSName+".editBucketFS", params);
+	}
+
+	
+	
 	/*
 	 * SERVICE BucketFS Object:
 	 * https://<user>:<pass>@<license_server>/cluster1/<object_name> Method
@@ -205,6 +237,37 @@ public class XmlRPCAccessLayer {
 		Object[] params = new Object[] { map };
 
 		client.execute(bucketFS + ".addBucket", params);
+	}
+
+	
+	//
+	//SERVICE BucketFSBucket
+	//Object: https://<user>:<pass>@<license_server>/cluster1/<object_name>
+	//  Method editBucketFSBucket
+	//         Edits object.
+	//
+	//    Function take a dictionary with parameters and return a list of fields, that was modified.
+	//    Allowed keys are (required fields are marked  with * ):
+	//    * bucket_name, type: TextLine, The name of bucket.
+	//      description, type: TextLine, Some description of this BucketFS Bucket.
+	//    * public_bucket, type: Bool, Public buckets require no password for reading.
+	//    * read_password, type: Password, Password readonly access.
+	//    * write_password, type: Password, Password for write access.
+
+	
+	public void editBucket(String bucketFS, String bucketName, String description, boolean publicBucket,
+			String readPassword, String writePassword) throws XmlRpcException {
+		Map<String, Comparable> map = new HashMap<String, Comparable>();
+
+		map.put("bucket_name", bucketName);
+		map.put("description", description);
+		map.put("public_bucket", publicBucket);
+		map.put("read_password", readPassword);
+		map.put("write_password", writePassword);
+
+		Object[] params = new Object[] { map };
+
+		client.execute(bucketFS + ".editBucketFSBucket", params);
 	}
 
 	
