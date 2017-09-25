@@ -84,11 +84,11 @@ public class Bucket extends BucketObject {
 		URL exaOpURL = new URL(bucketFS.getConfig().getUrl());
 
 		// prefer https over http
-		if (bucketFS.getHttpPort() != null)
-			restUrl = "http://" + exaOpURL.getHost() + ":" + bucketFS.getHttpPort() + "/" + getName();
-		else if (bucketFS.getHttpsPort() != null)
+		if (bucketFS.getHttpsPort() != null)
 			restUrl = "https://" + exaOpURL.getHost() + ":" + bucketFS.getHttpsPort() + "/" + getName();
-		else
+		else if (bucketFS.getHttpPort() != null)
+			restUrl = "http://" + exaOpURL.getHost() + ":" + bucketFS.getHttpPort() + "/" + getName();
+		else 
 			throw new URISyntaxException("Neither http nor https port set for Bucket FS " + bucketFS.getId(), "");
 
 		return BucketFSAccessLayer.listFiles(restUrl, getReadPassword());
@@ -101,11 +101,11 @@ public class Bucket extends BucketObject {
 		URL exaOpURL = new URL(bucketFS.getConfig().getUrl());
 
 		// prefer https over http
-		if (bucketFS.getHttpPort() != null)
-			restUrl = "http://" + exaOpURL.getHost() + ":" + bucketFS.getHttpPort() + "/" + getName() + "/"
-					+ URLEncoder.encode(file.getName(), "UTF-8");
-		else if (bucketFS.getHttpsPort() != null)
+		if (bucketFS.getHttpsPort() != null)
 			restUrl = "https://" + exaOpURL.getHost() + ":" + bucketFS.getHttpsPort() + "/" + getName() + "/"
+					+ URLEncoder.encode(file.getName(), "UTF-8");
+		else if (bucketFS.getHttpPort() != null)
+			restUrl = "http://" + exaOpURL.getHost() + ":" + bucketFS.getHttpPort() + "/" + getName() + "/"
 					+ URLEncoder.encode(file.getName(), "UTF-8");
 		else
 			throw new URISyntaxException("Neither http nor https port set for Bucket FS " + bucketFS.getId() + ".", "");
@@ -139,11 +139,11 @@ public class Bucket extends BucketObject {
 		URL exaOpURL = new URL(bucketFS.getConfig().getUrl());
 
 		// prefer https over http
-		if (bucketFS.getHttpPort() != null)
-			restUrl = "http://" + exaOpURL.getHost() + ":" + bucketFS.getHttpPort() + "/" + getName() + "/"
-					+ URLEncoder.encode(fileName, "UTF-8");
-		else if (bucketFS.getHttpsPort() != null)
+		if (bucketFS.getHttpsPort() != null)
 			restUrl = "https://" + exaOpURL.getHost() + ":" + bucketFS.getHttpsPort() + "/" + getName() + "/"
+					+ URLEncoder.encode(fileName, "UTF-8");
+		else if (bucketFS.getHttpPort() != null)
+			restUrl = "http://" + exaOpURL.getHost() + ":" + bucketFS.getHttpPort() + "/" + getName() + "/"
 					+ URLEncoder.encode(fileName, "UTF-8");
 		else
 			throw new URISyntaxException("Neither http nor https port set for Bucket FS" + bucketFS.getId(), "");
@@ -172,6 +172,30 @@ public class Bucket extends BucketObject {
 		for (String f : getFiles() ) 
 			deleteFile(f);
 			
+	}
+
+	public void editBucket(String bucketDescNew, boolean isPublicNew) throws XmlRpcException, MalformedURLException {
+		
+		bucketFS.getXmlRPC().editBucket(bucketFS.getId(), getId(), bucketDescNew, isPublicNew, null, null);
+		
+		setDescription(bucketDescNew);
+		
+		setPublic(isPublicNew);
+		
+	}
+
+	public void changeReadPassword(String readPasswordNew) throws MalformedURLException, XmlRpcException {
+		
+		bucketFS.getXmlRPC().editBucket(bucketFS.getId(), getId(), null, (Boolean) null, readPasswordNew, null);
+		
+		setReadPassword(readPasswordNew);
+	}
+
+	public void changeWritePassword(String writePasswordNew) throws MalformedURLException, XmlRpcException {
+		
+		bucketFS.getXmlRPC().editBucket(bucketFS.getId(), getId(), null, (Boolean) null, null, writePasswordNew);
+
+		setWritePassword(writePasswordNew);
 	}
 
 }

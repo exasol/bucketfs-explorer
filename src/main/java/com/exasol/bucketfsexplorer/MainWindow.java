@@ -385,7 +385,45 @@ public class MainWindow extends Application {
 
 			saveButton.setDisable(true);
 			
-			objectInfo.add(saveButton, 4, 1);
+			objectInfo.add(saveButton, 5, 1);
+			
+
+			ChangeListener<Object> textChanged = new ChangeListener<Object>() {
+
+				@Override
+				public void changed(ObservableValue<? extends Object> observable, Object oldValue, Object newValue) {
+					
+					saveButton.setDisable(false);
+
+				}
+			};
+
+			bucketDesc.textProperty().addListener(textChanged);
+		
+			
+			isPub.selectedProperty().addListener(textChanged);
+			
+
+			saveButton.setOnAction(new EventHandler<ActionEvent>() {
+	            @Override 
+	            public void handle(ActionEvent e) {
+	            	
+	            	try {
+						
+	            		b.editBucket(bucketDesc.getText(),isPub.isSelected());
+	            		
+						saveButton.setDisable(true);
+					} catch (XmlRpcException | MalformedURLException e1) {
+						Alert alert = new Alert(AlertType.ERROR);
+						alert.setTitle("Error during editing Bucket.");
+						alert.setHeaderText("Can't edit " + b.getId() + ".");
+						alert.setContentText(e1.getMessage());
+						alert.showAndWait();
+					}
+						
+	            }
+	        });			
+			
 			
 		} else if (obj instanceof BucketFS) {
 			BucketFS b = (BucketFS) obj;
@@ -935,6 +973,23 @@ public class MainWindow extends Application {
 				});
 
 				cm.getItems().add(enterReadPassword);
+				
+				MenuItem changeReadPassword = new MenuItem("Change read password (server)");
+
+				changeReadPassword.setOnAction(event -> {
+					Bucket bucket = (Bucket) item;
+
+					try {
+						bucket.changeReadPassword(showPasswordDialog("Change read password for " + bucket.getName(),
+								"Change read password permanently."));
+					} catch (MalformedURLException | XmlRpcException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+				});
+				
+				cm.getItems().add(changeReadPassword);
 
 				MenuItem enterWritePassword = new MenuItem("Enter write password (session)");
 
@@ -948,6 +1003,24 @@ public class MainWindow extends Application {
 
 				cm.getItems().add(enterWritePassword);
 
+				
+				MenuItem changeWritePassword = new MenuItem("Change write password (server)");
+
+				changeWritePassword.setOnAction(event -> {
+					Bucket bucket = (Bucket) item;
+
+					try {
+						bucket.changeWritePassword(showPasswordDialog("Change write password for " + bucket.getName(),
+								"Change write password permanently."));
+					} catch (MalformedURLException | XmlRpcException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+				});
+				
+				cm.getItems().add(changeWritePassword);
+				
 				// other menu items...
 				MenuItem refreshBucketItem = new MenuItem("Refresh metadata of bucket");
 				refreshBucketItem.setOnAction(event -> {

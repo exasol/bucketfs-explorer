@@ -254,20 +254,39 @@ public class XmlRPCAccessLayer {
 	//    * read_password, type: Password, Password readonly access.
 	//    * write_password, type: Password, Password for write access.
 
-	
-	public void editBucket(String bucketFS, String bucketName, String description, boolean publicBucket,
-			String readPassword, String writePassword) throws XmlRpcException {
+	public void editBucket(String bucketFS, String bucketName, String description, Boolean publicBucket,
+			String readPassword, String writePassword) throws XmlRpcException, MalformedURLException {
 		Map<String, Comparable> map = new HashMap<String, Comparable>();
 
 		map.put("bucket_name", bucketName);
-		map.put("description", description);
-		map.put("public_bucket", publicBucket);
-		map.put("read_password", readPassword);
-		map.put("write_password", writePassword);
+		
+		if(description != null)
+			map.put("description", description);
+		
+		if(publicBucket != null)
+			map.put("public_bucket", publicBucket);
+		
+		if(readPassword != null)
+			map.put("read_password", readPassword);
+		
+		if(writePassword != null)
+			map.put("write_password", writePassword);
 
 		Object[] params = new Object[] { map };
 
-		client.execute(bucketFS + ".editBucketFSBucket", params);
+		XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
+		config.setServerURL(new URL(exaoperationConfig.getUrl() + "/cluster1/" + bucketFS));
+		config.setBasicUserName(exaoperationConfig.getUsername());
+		config.setBasicPassword(exaoperationConfig.getPassword());
+
+		XmlRpcClient myClient = new XmlRpcClient();
+		myClient.setConfig(config);
+		myClient.setTypeFactory(new XmlRpcTypeNil(myClient)); // accept nil type
+																// from EXASOL
+																// XMLRPC python
+																// server
+
+		myClient.execute(bucketName + ".editBucketFSBucket", params);
 	}
 
 	
