@@ -94,7 +94,7 @@ public class Bucket extends BucketObject {
 		return BucketFSAccessLayer.listFiles(restUrl, getReadPassword());
 	}
 
-	public void uploadFile(File file) throws ClientProtocolException, IOException, URISyntaxException, XmlRpcException {
+	public void uploadFile(File file) throws ClientProtocolException, IOException, URISyntaxException, XmlRpcException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
 
 		String restUrl = "";
 
@@ -132,7 +132,7 @@ public class Bucket extends BucketObject {
 	}
 
 	public void deleteFile(String fileName)
-			throws ClientProtocolException, IOException, URISyntaxException, XmlRpcException {
+			throws ClientProtocolException, IOException, URISyntaxException, XmlRpcException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
 
 		String restUrl = "";
 

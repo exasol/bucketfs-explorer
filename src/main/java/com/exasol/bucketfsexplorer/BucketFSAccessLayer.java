@@ -41,9 +41,21 @@ public class BucketFSAccessLayer {
 	// "C:\\Users\\tb\\Desktop\\github-repos\\virtual-schemas\\jdbc-adapter\\virtualschema-jdbc-adapter-dist\\target\\original-virtualschema-jdbc-adapter-dist-0.0.1-SNAPSHOT.jar","bucket1");
 
 	public static void uploadFileToBucketFS(String url, String filePath, String password)
-			throws ClientProtocolException, IOException, URISyntaxException {
-
-		HttpClient httpClient = HttpClientBuilder.create().build();
+			throws ClientProtocolException, IOException, URISyntaxException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
+		
+		SSLContextBuilder builder = new SSLContextBuilder();
+		builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+		SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(builder.build(),
+				NoopHostnameVerifier.INSTANCE);
+		org.apache.http.config.Registry<ConnectionSocketFactory> registry = RegistryBuilder
+				.<ConnectionSocketFactory>create().register("http", new PlainConnectionSocketFactory())
+				.register("https", sslConnectionSocketFactory).build();
+		
+		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(registry);
+		cm.setMaxTotal(100);
+		CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(sslConnectionSocketFactory)
+				.setConnectionManager(cm).build();
+		
 		URIBuilder uriBuilder = new URIBuilder(url);
 		HttpPut request = new HttpPut(uriBuilder.build());
 
@@ -64,9 +76,23 @@ public class BucketFSAccessLayer {
 	}
 
 	public static void deleteFileInBucketFS(String url, String password)
-			throws ClientProtocolException, IOException, URISyntaxException {
+			throws ClientProtocolException, IOException, URISyntaxException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
 
-		HttpClient httpClient = HttpClientBuilder.create().build();
+		
+		SSLContextBuilder builder = new SSLContextBuilder();
+		builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+		SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(builder.build(),
+				NoopHostnameVerifier.INSTANCE);
+		org.apache.http.config.Registry<ConnectionSocketFactory> registry = RegistryBuilder
+				.<ConnectionSocketFactory>create().register("http", new PlainConnectionSocketFactory())
+				.register("https", sslConnectionSocketFactory).build();
+
+		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(registry);
+		cm.setMaxTotal(100);
+		CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(sslConnectionSocketFactory)
+				.setConnectionManager(cm).build();
+
+		
 		URIBuilder uriBuilder = new URIBuilder(url);
 		HttpDelete request = new HttpDelete(uriBuilder.build());
 

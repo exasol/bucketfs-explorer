@@ -186,7 +186,7 @@ public class MainWindow extends Application {
 							try {
 
 								b.deleteFile(cell.getItem());
-							} catch (IOException | URISyntaxException | XmlRpcException e) {
+							} catch (IOException | URISyntaxException | XmlRpcException | KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
 								Alert alert = new Alert(AlertType.ERROR);
 								alert.setTitle("Error during delete");
 								alert.setHeaderText(
@@ -871,7 +871,7 @@ public class MainWindow extends Application {
 												
 											}
 
-										} catch (IOException | URISyntaxException | XmlRpcException e) {
+										} catch (IOException | URISyntaxException | XmlRpcException | KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
 
 											Alert alert = new Alert(AlertType.ERROR);
 											alert.setTitle("Error during upload");
