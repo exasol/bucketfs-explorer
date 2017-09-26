@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -103,10 +102,10 @@ public class Bucket extends BucketObject {
 		// prefer https over http
 		if (bucketFS.getHttpsPort() != null)
 			restUrl = "https://" + exaOpURL.getHost() + ":" + bucketFS.getHttpsPort() + "/" + getName() + "/"
-					+ URLEncoder.encode(file.getName(), "UTF-8");
+					+ file.getName().replaceAll("%2", "/");
 		else if (bucketFS.getHttpPort() != null)
 			restUrl = "http://" + exaOpURL.getHost() + ":" + bucketFS.getHttpPort() + "/" + getName() + "/"
-					+ URLEncoder.encode(file.getName(), "UTF-8");
+					+ file.getName().replaceAll("%2", "/");
 		else
 			throw new URISyntaxException("Neither http nor https port set for Bucket FS " + bucketFS.getId() + ".", "");
 
@@ -141,10 +140,10 @@ public class Bucket extends BucketObject {
 		// prefer https over http
 		if (bucketFS.getHttpsPort() != null)
 			restUrl = "https://" + exaOpURL.getHost() + ":" + bucketFS.getHttpsPort() + "/" + getName() + "/"
-					+ URLEncoder.encode(fileName, "UTF-8");
+					+ fileName.replaceAll("%2", "/");
 		else if (bucketFS.getHttpPort() != null)
 			restUrl = "http://" + exaOpURL.getHost() + ":" + bucketFS.getHttpPort() + "/" + getName() + "/"
-					+ URLEncoder.encode(fileName, "UTF-8");
+					+ fileName.replaceAll("%2", "/");
 		else
 			throw new URISyntaxException("Neither http nor https port set for Bucket FS" + bucketFS.getId(), "");
 
@@ -196,6 +195,29 @@ public class Bucket extends BucketObject {
 		bucketFS.getXmlRPC().editBucket(bucketFS.getId(), getId(), null, (Boolean) null, null, writePasswordNew);
 
 		setWritePassword(writePasswordNew);
+	}
+
+	public void downloadFile(File targetDirectory, String fileName) throws URISyntaxException, KeyManagementException, ClientProtocolException, NoSuchAlgorithmException, KeyStoreException, IOException {
+		
+		String restUrl = "";
+
+		URL exaOpURL = new URL(bucketFS.getConfig().getUrl());
+
+		// prefer https over http
+		if (bucketFS.getHttpsPort() != null)
+			restUrl = "https://" + exaOpURL.getHost() + ":" + bucketFS.getHttpsPort() + "/" + getName() + "/"
+					+ fileName;
+		else if (bucketFS.getHttpPort() != null)
+			restUrl = "http://" + exaOpURL.getHost() + ":" + bucketFS.getHttpPort() + "/" + getName() + "/"
+					+ fileName;
+		else
+			throw new URISyntaxException("Neither http nor https port set for Bucket FS" + bucketFS.getId(), "");
+
+		
+		File targetFile = new File(targetDirectory, fileName.replaceAll("/", "%2"));
+		
+		BucketFSAccessLayer.downloadFileInBucketFS(restUrl, targetFile, getReadPassword());
+		
 	}
 
 }

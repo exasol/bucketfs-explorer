@@ -175,10 +175,10 @@ public class BucketFS extends BucketObject {
 		
 		this.setDescription(bucketDesc);
 		if(httpPortNew.matches("[0-9]*") )
-			this.setHttpPort(Integer.getInteger(httpPortNew));
+			this.setHttpPort(Integer.valueOf(httpPortNew));
 		
 		if(httpsPortNew.matches("[0-9]*"))
-			this.setHttpsPort(Integer.getInteger(httpsPortNew) );
+			this.setHttpsPort(Integer.valueOf(httpsPortNew) );
 		
 	}
 

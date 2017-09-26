@@ -55,6 +55,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -223,17 +224,77 @@ public class MainWindow extends Application {
 
 			contextMenu.getItems().addAll(deleteItem);
 
+			
+			MenuItem downloadItem = new MenuItem();
+			downloadItem.textProperty().bind(Bindings.format("Download \"%s\"", cell.itemProperty()));
+			downloadItem.setOnAction(event -> {
+
+				TreeItem<BucketObject> bObj = treeView.getSelectionModel().getSelectedItem();
+
+				if (bObj.getValue() instanceof Bucket) {
+
+					Bucket b = (Bucket) bObj.getValue();
+
+					if (!b.isPublic() && b.getReadPassword() == null)
+						b.setReadPassword(showPasswordDialog("Read password for " + b.getName(), ""));
+
+					DirectoryChooser directoryChooser = new DirectoryChooser();
+					directoryChooser.setTitle("Select target directory");
+					
+					File targetDirectory = directoryChooser.showDialog(stage);
+					
+					File targetFile = new File(targetDirectory, cell.getItem().replaceAll("/", "%2"));
+					
+					
+					if(targetFile.exists()) {
+						
+						Alert alert = new Alert(AlertType.CONFIRMATION);
+						alert.setTitle("Confirm download");
+						alert.setHeaderText("File " + targetFile.getAbsolutePath() + "already exists?");
+						alert.setContentText("Do you want to overwrite this file?");
+
+						Optional<ButtonType> result = alert.showAndWait();
+
+						if (result.get() != ButtonType.OK)
+							return;
+					}
+					
+					Platform.runLater(new Runnable() {
+
+						@Override
+						public void run() {
+
+							try {
+								b.downloadFile(targetDirectory,cell.getItem());
+								
+								Alert alert = new Alert(AlertType.INFORMATION);
+								alert.setTitle("Download finished");
+								alert.setHeaderText("Download finished");
+								alert.setContentText("File " + cell.getItem() + " in bucket " + b.getName() + " to " + targetFile.getAbsolutePath() + ".");
+								alert.showAndWait();
+								
+							} catch (IOException | URISyntaxException | KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
+								Alert alert = new Alert(AlertType.ERROR);
+								alert.setTitle("Error during download");
+								alert.setHeaderText(
+										"Can't download file " + cell.getItem() + " in bucket " + b.getName() + ".");
+								alert.setContentText(e.getMessage());
+								alert.showAndWait();
+							}
+
+						}
+					});
+
+				}
+
+			});
+
+			contextMenu.getItems().addAll(downloadItem);
+			
 			cell.textProperty().bind(cell.itemProperty());
 
 			cell.setContextMenu(contextMenu);
 
-			// cell.emptyProperty().addListener((obs, wasEmpty, isNowEmpty) -> {
-			// if (isNowEmpty) {
-			// cell.setContextMenu(null);
-			// } else {
-			//
-			// }
-			// });
 			return cell;
 		});
 
@@ -827,9 +888,7 @@ public class MainWindow extends Application {
 			setContextMenu(cm);
 		}
 
-		
 
-		
 		private ContextMenu createContextMenu(BucketObject item) {
 			ContextMenu cm = new ContextMenu();
 

@@ -3,6 +3,7 @@ package com.exasol.bucketfsexplorer;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
@@ -13,10 +14,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
@@ -30,7 +32,6 @@ import org.apache.http.conn.ssl.SSLContextBuilder;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
@@ -131,6 +132,38 @@ public class BucketFSAccessLayer {
 			fileList.add(output);
 
 		return fileList;
+	}
+
+	public static File downloadFileInBucketFS(String url, File targetFile, String readPassword) throws URISyntaxException, KeyManagementException, ClientProtocolException, NoSuchAlgorithmException, KeyStoreException, IOException {
+		URIBuilder uriBuilder = new URIBuilder(url);
+		HttpGet request = new HttpGet(uriBuilder.build());
+
+		String auth = "r:" + readPassword;
+		byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(Charset.forName("UTF-8")));
+		String authHeader = "Basic " + new String(encodedAuth);
+		request.setHeader(HttpHeaders.AUTHORIZATION, authHeader);
+
+		File downloaded = getHttpClient().execute(request, new FileDownloadResponseHandler(targetFile));
+		
+		return downloaded;
+		
+	}
+	
+	static class FileDownloadResponseHandler implements ResponseHandler<File> {
+
+		private final File target;
+
+		public FileDownloadResponseHandler(File target) {
+			this.target = target;
+		}
+
+		@Override
+		public File handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+			InputStream source = response.getEntity().getContent();
+			FileUtils.copyInputStreamToFile(source, this.target);
+			return this.target;
+		}
+		
 	}
 
 }
