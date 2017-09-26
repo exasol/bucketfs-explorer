@@ -6,8 +6,8 @@ The BucketFS explorer is a tiny GUI written in Java/JavaFX that helps you workin
 
 ## Prerequisites
 
-* Java 1.8 BucketFS Explorer was tested with Java 8u144.
-* You need to have credentials for EXAoperation, because a lot of the functionality is using [XMLRPC] (https://github.com/EXASOL/exaoperation-xmlrpc) behind the scenes.
+* Java 8, BucketFS Explorer was tested with Java 8u144.
+* You need to have access/credentials to EXAoperation, because a lot of the functionality is using [XMLRPC] (https://github.com/EXASOL/exaoperation-xmlrpc) behind the scenes.
 
 ## Getting started
 
