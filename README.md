@@ -26,6 +26,6 @@ The BucketFS explorer is a tiny GUI written in Java/JavaFX that helps you workin
 * Upload / Download / Delete files
 * Showing additional metadata (e.g. size of a bucket, path to refer to bucket in a UDF)
 
-## Known issue
+## Known issues
 
 Currently no known issue, please report.
