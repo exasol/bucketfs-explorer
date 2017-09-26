@@ -1140,7 +1140,7 @@ public class MainWindow extends Application {
 					alert.setTitle("Confirm delete.");
 					alert.setHeaderText("Delete BucketFS " + item+ "?");
 					alert.setContentText("Do you really want to delete this BucketFS");
-
+					
 					Optional<ButtonType> result = alert.showAndWait();
 
 					if (result.get() != ButtonType.OK)

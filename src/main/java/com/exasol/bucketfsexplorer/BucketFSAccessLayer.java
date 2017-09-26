@@ -37,11 +37,11 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 @SuppressWarnings("deprecation")
 public class BucketFSAccessLayer {
 
-	// uploadFileToBucketFS("http://192.168.106.131:2580/bucket1/original-virtualschema-jdbc-adapter-dist-0.0.1-SNAPSHOT.jar",
-	// "C:\\Users\\tb\\Desktop\\github-repos\\virtual-schemas\\jdbc-adapter\\virtualschema-jdbc-adapter-dist\\target\\original-virtualschema-jdbc-adapter-dist-0.0.1-SNAPSHOT.jar","bucket1");
-
-	public static void uploadFileToBucketFS(String url, String filePath, String password)
-			throws ClientProtocolException, IOException, URISyntaxException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
+	private static CloseableHttpClient httpClient;
+	
+	public static CloseableHttpClient getHttpClient () throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+		
+		if(httpClient == null) {
 		
 		SSLContextBuilder builder = new SSLContextBuilder();
 		builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
@@ -51,11 +51,22 @@ public class BucketFSAccessLayer {
 				.<ConnectionSocketFactory>create().register("http", new PlainConnectionSocketFactory())
 				.register("https", sslConnectionSocketFactory).build();
 		
+		
 		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(registry);
 		cm.setMaxTotal(100);
-		CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(sslConnectionSocketFactory)
+		httpClient = HttpClients.custom().setSSLSocketFactory(sslConnectionSocketFactory)
 				.setConnectionManager(cm).build();
 		
+		}
+		
+		return httpClient;
+		
+	}
+	
+	public static void uploadFileToBucketFS(String url, String filePath, String password)
+			throws ClientProtocolException, IOException, URISyntaxException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
+		
+
 		URIBuilder uriBuilder = new URIBuilder(url);
 		HttpPut request = new HttpPut(uriBuilder.build());
 
@@ -68,7 +79,7 @@ public class BucketFSAccessLayer {
 
 		request.setEntity(fileEntity);
 
-		HttpResponse response = httpClient.execute(request);
+		HttpResponse response = getHttpClient().execute(request);
 
 		if (response.getStatusLine().getStatusCode() != 200)
 			throw new IOException(response.toString());
@@ -78,21 +89,7 @@ public class BucketFSAccessLayer {
 	public static void deleteFileInBucketFS(String url, String password)
 			throws ClientProtocolException, IOException, URISyntaxException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
 
-		
-		SSLContextBuilder builder = new SSLContextBuilder();
-		builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-		SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(builder.build(),
-				NoopHostnameVerifier.INSTANCE);
-		org.apache.http.config.Registry<ConnectionSocketFactory> registry = RegistryBuilder
-				.<ConnectionSocketFactory>create().register("http", new PlainConnectionSocketFactory())
-				.register("https", sslConnectionSocketFactory).build();
 
-		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(registry);
-		cm.setMaxTotal(100);
-		CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(sslConnectionSocketFactory)
-				.setConnectionManager(cm).build();
-
-		
 		URIBuilder uriBuilder = new URIBuilder(url);
 		HttpDelete request = new HttpDelete(uriBuilder.build());
 
@@ -101,28 +98,15 @@ public class BucketFSAccessLayer {
 		String authHeader = "Basic " + new String(encodedAuth);
 		request.setHeader(HttpHeaders.AUTHORIZATION, authHeader);
 
-		HttpResponse response = httpClient.execute(request);
+		HttpResponse response = getHttpClient().execute(request);
 
 		if (response.getStatusLine().getStatusCode() != 200)
 			throw new IOException(response.toString());
 	}
 
-	@SuppressWarnings("deprecation")
+
 	public static List<String> listFiles(String url, String password) throws ClientProtocolException, IOException,
 			URISyntaxException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-
-		SSLContextBuilder builder = new SSLContextBuilder();
-		builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-		SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(builder.build(),
-				NoopHostnameVerifier.INSTANCE);
-		org.apache.http.config.Registry<ConnectionSocketFactory> registry = RegistryBuilder
-				.<ConnectionSocketFactory>create().register("http", new PlainConnectionSocketFactory())
-				.register("https", sslConnectionSocketFactory).build();
-
-		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(registry);
-		cm.setMaxTotal(100);
-		CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(sslConnectionSocketFactory)
-				.setConnectionManager(cm).build();
 
 		URIBuilder uriBuilder = new URIBuilder(url);
 		HttpGet request = new HttpGet(uriBuilder.build());
@@ -132,7 +116,7 @@ public class BucketFSAccessLayer {
 		String authHeader = "Basic " + new String(encodedAuth);
 		request.setHeader(HttpHeaders.AUTHORIZATION, authHeader);
 
-		HttpResponse response = httpClient.execute(request);
+		HttpResponse response = getHttpClient().execute(request);
 
 		if (response.getStatusLine().getStatusCode() != 200)
 			throw new IOException(response.toString());
