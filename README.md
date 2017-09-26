@@ -22,7 +22,7 @@ The BucketFS explorer is a tiny GUI written in Java/JavaFX that helps you workin
 
 * Create / Delete / Modify BucketFS services
 * Create / Delete / Modify buckets
-* List files in of a bucket
+* List files of a bucket
 * Upload / Download / Delete files
 
 ## Known issue
