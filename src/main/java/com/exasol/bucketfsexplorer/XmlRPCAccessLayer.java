@@ -127,7 +127,7 @@ public class XmlRPCAccessLayer {
 		return (HashMap<String, Object>) myClient.execute(bucket + ".getProperties", new Object[] {});
 	}
 
-	public Object getSizeOfBucket(String bucketFSname, String bucket) throws XmlRpcException, MalformedURLException {
+	public Integer getSizeOfBucket(String bucketFSname, String bucket) throws XmlRpcException, MalformedURLException {
 
 		XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
 		config.setServerURL(new URL(exaoperationConfig.getUrl() + "/cluster1/" + bucketFSname));
@@ -141,7 +141,14 @@ public class XmlRPCAccessLayer {
 																// XMLRPC python
 																// server
 
-		return myClient.execute(bucket + ".getSize", new Object[] {});
+		
+		Object ret = myClient.execute(bucket + ".getSize", new Object[] {});
+		
+		if ( ret instanceof Integer)
+			return (Integer) ret;
+		else
+			return new Integer(-1);
+			
 	}
 
 	public Object[] listBucketFSs() throws XmlRpcException {

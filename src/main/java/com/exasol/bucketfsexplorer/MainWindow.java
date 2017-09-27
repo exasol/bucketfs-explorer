@@ -707,7 +707,7 @@ public class MainWindow extends Application {
 				HashMap<String, Object> bucketProps = xmlRPC.getPropertiesBucket((String) bucketFSs[i],
 						(String) buckets[j]);
 
-				int bucketSize = (Integer) xmlRPC.getSizeOfBucket((String) bucketFSs[i], (String) buckets[j]);
+				Integer bucketSize = xmlRPC.getSizeOfBucket((String) bucketFSs[i], (String) buckets[j]);
 
 				Bucket b = new Bucket((String) buckets[j], bFS);
 
