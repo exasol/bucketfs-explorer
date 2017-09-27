@@ -245,8 +245,12 @@ public class MainWindow extends Application {
 									try {
 										b.reloadMetadata();
 									} catch (MalformedURLException | XmlRpcException e) {
-										// TODO Auto-generated catch block
-										e.printStackTrace();
+										
+										Alert alert = new Alert(AlertType.ERROR);
+										alert.setTitle("Error during reload");
+										alert.setContentText(e.getMessage());
+										alert.showAndWait();
+										
 									}
 
 									reloadObjectInfo(b);
@@ -407,8 +411,12 @@ public class MainWindow extends Application {
 		try {
 			initBucketFSStructure();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setTitle("Error during initBucketFSStructure");
+			alert.setContentText(e.getStackTrace().toString());
+			alert.showAndWait();
+			
 		}
 
 		for (Iterator<BucketFS> iterator = bucketFSList.iterator(); iterator.hasNext();) {
@@ -1098,8 +1106,10 @@ public class MainWindow extends Application {
 						bucket.changeReadPassword(showPasswordDialog("Change read password for " + bucket.getName(),
 								"Change read password permanently."));
 					} catch (MalformedURLException | XmlRpcException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						Alert alert = new Alert(AlertType.ERROR);
+						alert.setTitle("Error during password change.");
+						alert.setContentText(e.getMessage());
+						alert.showAndWait();
 					}
 
 				});
@@ -1128,8 +1138,10 @@ public class MainWindow extends Application {
 						bucket.changeWritePassword(showPasswordDialog("Change write password for " + bucket.getName(),
 								"Change write password permanently."));
 					} catch (MalformedURLException | XmlRpcException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						Alert alert = new Alert(AlertType.ERROR);
+						alert.setTitle("Error during password change.");
+						alert.setContentText(e.getMessage());
+						alert.showAndWait();
 					}
 
 				});
@@ -1145,8 +1157,10 @@ public class MainWindow extends Application {
 					try {
 						bucket.reloadMetadata();
 					} catch (MalformedURLException | XmlRpcException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						Alert alert = new Alert(AlertType.ERROR);
+						alert.setTitle("Error during reload.");
+						alert.setContentText(e.getMessage());
+						alert.showAndWait();
 					}
 
 					reloadObjectInfo(bucket);
@@ -1180,14 +1194,15 @@ public class MainWindow extends Application {
 					try {
 						bucket.getBucketFS().deleteBucket(bucket);
 						
-						 TreeItem c = (TreeItem)treeView.getSelectionModel().getSelectedItem();
-				         boolean remove = c.getParent().getChildren().remove(c);
-
+						 TreeItem<BucketObject> c = (TreeItem<BucketObject>)treeView.getSelectionModel().getSelectedItem();
+				         c.getParent().getChildren().remove(c);
 						
 					} catch (XmlRpcException | KeyManagementException | NoSuchAlgorithmException | KeyStoreException | IOException | URISyntaxException e) {
 						
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						Alert alert2 = new Alert(AlertType.ERROR);
+						alert2.setTitle("Error during bucket delete");
+						alert2.setContentText(e.getMessage());
+						alert2.showAndWait();
 						
 					} 
 					
@@ -1268,8 +1283,8 @@ public class MainWindow extends Application {
 								bucketFS.delete();
 								
 								// delete in Tree
-								TreeItem c = (TreeItem)treeView.getSelectionModel().getSelectedItem();
-						        boolean remove = c.getParent().getChildren().remove(c);
+								TreeItem<BucketObject> c = (TreeItem<BucketObject>)treeView.getSelectionModel().getSelectedItem();
+						        c.getParent().getChildren().remove(c);
 								
 							} catch (XmlRpcException e) {
 								
