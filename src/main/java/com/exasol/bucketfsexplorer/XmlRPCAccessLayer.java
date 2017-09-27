@@ -97,9 +97,16 @@ public class XmlRPCAccessLayer {
 		return (HashMap<String, Object>) client.execute(bucketFSname + ".getProperties", new Object[] {});
 	}
 
-	public Object getSizeOfBucketFS(String bucketFSname) throws XmlRpcException {
+	public Integer getSizeOfBucketFS(String bucketFSname) throws XmlRpcException {
 
-		return client.execute(bucketFSname + ".getSize", new Object[] {});
+		Object ret = client.execute(bucketFSname + ".getSize", new Object[] {});
+		
+		if ( ret instanceof Integer)
+			return (Integer)ret;
+		
+		else
+			return new Integer(-1);
+		
 	}
 
 	public HashMap<String, Object> getPropertiesBucket(String bucketFSname, String bucket)

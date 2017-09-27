@@ -293,7 +293,16 @@ public class MainWindow extends Application {
 			
 			cell.textProperty().bind(cell.itemProperty());
 
-			cell.setContextMenu(contextMenu);
+			
+			cell.emptyProperty().addListener((obs, wasEmpty, isNowEmpty) -> {
+                if (isNowEmpty) {
+                    cell.setContextMenu(null);
+                } else {
+                    cell.setContextMenu(contextMenu);
+                }
+            });
+			
+			//cell.setContextMenu(contextMenu);
 
 			return cell;
 		});
@@ -686,7 +695,7 @@ public class MainWindow extends Application {
 
 			BucketFS bFS = new BucketFS((String) bucketFSs[i], desc, httpPort, httpsPort, disk, config, xmlRPC);
 
-			int size = (Integer) xmlRPC.getSizeOfBucketFS((String) bucketFSs[i]);
+			Integer size = xmlRPC.getSizeOfBucketFS((String) bucketFSs[i]);
 
 			bFS.setSize(size);
 
