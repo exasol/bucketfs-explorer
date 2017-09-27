@@ -509,10 +509,8 @@ public class MainWindow extends Application {
 
 			bucketDesc.textProperty().addListener(textChanged);
 		
-			
 			isPub.selectedProperty().addListener(textChanged);
 			
-
 			saveButton.setOnAction(new EventHandler<ActionEvent>() {
 	            @Override 
 	            public void handle(ActionEvent e) {
