@@ -11,7 +11,7 @@ The BucketFS explorer is a tiny GUI written in Java/JavaFX that helps you workin
 
 ## Getting started
 
-* Download jar file [bucketfsexplorer-0.0.1-SNAPSHOT-jar-with-dependencies.jar](bucketfs-explorer/build/bucketfsexplorer-0.0.1-SNAPSHOT-jar-with-dependencies.jar)
+* Download jar file [bucketfsexplorer-0.0.1-SNAPSHOT-jar-with-dependencies.jar](https://github.com/EXASOL/bucketfs-explorer/blob/master/build/bucketfsexplorer-0.0.1-SNAPSHOT-jar-with-dependencies.jar)
 * Double-click on the jar or run java -jar bucketfsexplorer-0.0.1-SNAPSHOT-jar-with-dependencies.jar 
 * Please enter the EXAoperation URL / Username / Password and the main window will be shown, use the context menu in the tree / list to get started: 
 
