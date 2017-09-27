@@ -52,6 +52,9 @@ import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.TextFieldTreeCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
@@ -149,6 +152,42 @@ public class MainWindow extends Application {
 		listView.setEditable(false);
 
 		listView.setItems(data);
+
+		listView.setOnDragOver(new EventHandler<DragEvent>() {
+
+            @Override
+            public void handle(DragEvent event) {
+                if (event.getGestureSource() != listView
+                        && event.getDragboard().hasFiles()) {
+                    /* allow for both copying and moving, whatever user chooses */
+                    event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+                }
+                event.consume();
+            }
+        });
+
+		listView.setOnDragDropped(new EventHandler<DragEvent>() {
+
+            @Override
+            public void handle(DragEvent event) {
+                Dragboard db = event.getDragboard();
+                boolean success = false;
+                if (db.hasFiles()) {
+                	
+    				TreeItem<BucketObject> bObj = treeView.getSelectionModel().getSelectedItem();
+
+    				if (bObj.getValue() instanceof Bucket) {
+    					uploadFiles(db.getFiles(), (Bucket)bObj.getValue());
+                    	success = true;
+    				}
+                	
+                }
+                
+                event.setDropCompleted(success);
+
+                event.consume();
+            }
+        });
 
 		listView.setCellFactory(lv -> {
 
@@ -880,6 +919,127 @@ public class MainWindow extends Application {
 		return "http".equals(url.getProtocol()) || "https".equals(url.getProtocol());
 	}
 
+	
+	private void uploadFiles(List<File> files, Bucket bucket) {
+		
+		if (files != null) {
+
+			if (bucket.getWritePassword() == null)
+				bucket.setWritePassword(showPasswordDialog("Write password for " + bucket.getName(), ""));
+
+			
+			Service<Void> service = new Service<Void>() {
+			    @Override
+			    protected Task<Void> createTask() {
+			        return new Task<Void>() {
+			            @Override
+			            protected Void call()
+			                    throws InterruptedException {
+			                updateMessage("Uploading files. . .");
+			                
+			                
+			                int i =0;
+			                updateProgress(i, files.size());
+			                
+			                try {
+
+								for (File file : files) {
+									bucket.uploadFile(file);
+					                updateProgress(++i, files.size());
+				                    updateMessage("Uploaded "+file.getName());
+									
+								}
+
+							} catch (IOException | URISyntaxException | XmlRpcException | KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
+
+								Alert alert = new Alert(AlertType.ERROR);
+								alert.setTitle("Error during upload");
+								alert.setHeaderText("Can't upload file to " + bucket.getName());
+								alert.setContentText(e.getMessage());
+								alert.showAndWait();
+							}
+
+			                updateMessage("Upload finished.");
+			               
+			                
+							Platform.runLater(new Runnable() {
+
+								@Override
+								public void run() {
+
+									try {
+										
+										reloadFilesOfBucket(bucket);
+										
+										bucket.reloadMetadata();
+									} catch (MalformedURLException | XmlRpcException e) {
+										Alert alert = new Alert(AlertType.ERROR);
+										alert.setTitle("Error during upload");
+										alert.setHeaderText("Can't upload file to " + bucket.getName());
+										alert.setContentText(e.getMessage());
+										alert.showAndWait();
+									}
+
+									reloadObjectInfo(bucket);
+								}
+							});
+			               						                
+			                return null;
+			            }
+			        };
+			    }
+			};
+
+			Dialog<Boolean> progressDialog = new Dialog<Boolean>();
+
+			progressDialog.setTitle("Upload progress");
+			progressDialog.initOwner(stage);
+
+			// Create the username and password labels and fields.
+			GridPane grid = new GridPane();
+			grid.setHgap(10);
+			grid.setVgap(10);
+			
+			//grid.setPadding(new Insets(20, 150, 10, 10));
+
+			Label statusLabel = new Label("Starting upload");
+			
+			grid.add(statusLabel, 0, 0);
+
+			ProgressBar progbar = new ProgressBar();
+			
+			progbar.setMinWidth(200);
+			
+			grid.add(progbar, 0, 1);
+
+			progressDialog.getDialogPane().setContent(grid);
+			
+
+			progbar.progressProperty().bind(service.progressProperty());
+			
+            statusLabel.textProperty().bind(service.messageProperty());
+			
+			progressDialog.show();
+			
+			service.setOnSucceeded(value -> {
+				progressDialog.setResult(Boolean.TRUE);
+		        progressDialog.close();					    
+		     }
+			);
+			
+			service.setOnFailed(value -> {
+				progressDialog.setResult(Boolean.FALSE);
+		        progressDialog.close();					    
+		     }
+			);
+			
+			service.start();
+		}
+
+		
+		
+	}
+	
 	class MyBucketTreeCell extends TextFieldTreeCell<BucketObject> {
 
 		Stage stage;
@@ -911,121 +1071,10 @@ public class MainWindow extends Application {
 					fileChooser.setTitle("Choose file(s) to upload to " + bucket.getName());
 					List<File> files = fileChooser.showOpenMultipleDialog(stage);
 
-					if (files != null) {
-
-						if (bucket.getWritePassword() == null)
-							bucket.setWritePassword(showPasswordDialog("Write password for " + bucket.getName(), ""));
-
-						
-						Service<Void> service = new Service<Void>() {
-						    @Override
-						    protected Task<Void> createTask() {
-						        return new Task<Void>() {
-						            @Override
-						            protected Void call()
-						                    throws InterruptedException {
-						                updateMessage("Uploading files. . .");
-						                
-						                
-						                int i =0;
-						                updateProgress(i, files.size());
-						                
-						                try {
-
-											for (File file : files) {
-												bucket.uploadFile(file);
-								                updateProgress(++i, files.size());
-							                    updateMessage("Uploaded "+file.getName());
-												
-											}
-
-										} catch (IOException | URISyntaxException | XmlRpcException | KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
-
-											Alert alert = new Alert(AlertType.ERROR);
-											alert.setTitle("Error during upload");
-											alert.setHeaderText("Can't upload file to " + bucket.getName());
-											alert.setContentText(e.getMessage());
-											alert.showAndWait();
-										}
-
-						                updateMessage("Upload finished.");
-						               
-						                
-										Platform.runLater(new Runnable() {
-
-											@Override
-											public void run() {
-
-												try {
-													
-													reloadFilesOfBucket(bucket);
-													
-													bucket.reloadMetadata();
-												} catch (MalformedURLException | XmlRpcException e) {
-													Alert alert = new Alert(AlertType.ERROR);
-													alert.setTitle("Error during upload");
-													alert.setHeaderText("Can't upload file to " + bucket.getName());
-													alert.setContentText(e.getMessage());
-													alert.showAndWait();
-												}
-
-												reloadObjectInfo(bucket);
-											}
-										});
-						               						                
-						                return null;
-						            }
-						        };
-						    }
-						};
-
-						
-						Dialog<Boolean> progressDialog = new Dialog<Boolean>();
-
-						progressDialog.setTitle("Upload progress");
-						progressDialog.initOwner(stage);
-
-						// Create the username and password labels and fields.
-						GridPane grid = new GridPane();
-						grid.setHgap(10);
-						grid.setVgap(10);
-						
-						//grid.setPadding(new Insets(20, 150, 10, 10));
-
-						Label statusLabel = new Label("Starting upload");
-						
-						grid.add(statusLabel, 0, 0);
-
-						ProgressBar progbar = new ProgressBar();
-						
-						progbar.setMinWidth(200);
-						
-						grid.add(progbar, 0, 1);
-
-						progressDialog.getDialogPane().setContent(grid);
-						
-	
-						progbar.progressProperty().bind(service.progressProperty());
-						
-			            statusLabel.textProperty().bind(service.messageProperty());
-						
-						progressDialog.show();
-						
-						service.setOnSucceeded(value -> {
-							progressDialog.setResult(Boolean.TRUE);
-					        progressDialog.close();					    
-					     }
-						);
-						
-						service.setOnFailed(value -> {
-							progressDialog.setResult(Boolean.FALSE);
-					        progressDialog.close();					    
-					     }
-						);
-						
-						service.start();
-					}
-
+			
+					uploadFiles(files, bucket);
+					
+					
 				});
 
 				cm.getItems().add(openItem);
