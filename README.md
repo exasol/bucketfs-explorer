@@ -17,6 +17,7 @@ The BucketFS explorer is a tiny GUI written in Java/JavaFX that helps you workin
 
 ![alt text](https://github.com/EXASOL/bucketfs-explorer/blob/master/screenshots/BucketFS_Explorer_Screenshot1.PNG)
 
+* **Hint:** In a **clustered environment** use the IP / name of one of the database nodes for the EXAoperation URL, because the BucketFS service is running on the database nodes 
 * You can also upload files via Drag N Drop from your local file browser
 
 ## Functionality
