@@ -72,7 +72,7 @@ public class MainWindow extends Application {
 
 	private final Image bucketIcon = new Image(getClass().getResourceAsStream("/ic_folder_black_18dp.png"));
 
-	private final Image exasol = new Image(this.getClass().getResourceAsStream("/exasol.png"));
+	private final Image taskbarLogo = new Image(this.getClass().getResourceAsStream("/bucket-big.png"));
 
 	private ArrayList<BucketFS> bucketFSList = new ArrayList<BucketFS>();
 
@@ -101,7 +101,7 @@ public class MainWindow extends Application {
 
 		stage.setTitle("BucketFS Explorer");
 
-		stage.getIcons().add(exasol);
+		stage.getIcons().add(taskbarLogo);
 
 		// First establish xmlRPC Connection
 		if (!establishXMLRPCConnection())
@@ -173,16 +173,16 @@ public class MainWindow extends Application {
                 Dragboard db = event.getDragboard();
                 boolean success = false;
                 if (db.hasFiles()) {
-                	
+
     				TreeItem<BucketObject> bObj = treeView.getSelectionModel().getSelectedItem();
 
     				if (bObj.getValue() instanceof Bucket) {
     					uploadFiles(db.getFiles(), (Bucket)bObj.getValue());
                     	success = true;
     				}
-                	
+
                 }
-                
+
                 event.setDropCompleted(success);
 
                 event.consume();
@@ -245,12 +245,12 @@ public class MainWindow extends Application {
 									try {
 										b.reloadMetadata();
 									} catch (MalformedURLException | XmlRpcException e) {
-										
+
 										Alert alert = new Alert(AlertType.ERROR);
 										alert.setTitle("Error during reload");
 										alert.setContentText(e.getMessage());
 										alert.showAndWait();
-										
+
 									}
 
 									reloadObjectInfo(b);
@@ -267,7 +267,7 @@ public class MainWindow extends Application {
 
 			contextMenu.getItems().addAll(deleteItem);
 
-			
+
 			MenuItem downloadItem = new MenuItem();
 			downloadItem.textProperty().bind(Bindings.format("Download \"%s\"", cell.itemProperty()));
 			downloadItem.setOnAction(event -> {
@@ -283,14 +283,14 @@ public class MainWindow extends Application {
 
 					DirectoryChooser directoryChooser = new DirectoryChooser();
 					directoryChooser.setTitle("Select target directory");
-					
+
 					File targetDirectory = directoryChooser.showDialog(stage);
-					
+
 					File targetFile = new File(targetDirectory, cell.getItem().replaceAll("/", "%2"));
-					
-					
+
+
 					if(targetFile.exists()) {
-						
+
 						Alert alert = new Alert(AlertType.CONFIRMATION);
 						alert.setTitle("Confirm download");
 						alert.setHeaderText("File " + targetFile.getAbsolutePath() + "already exists?");
@@ -301,7 +301,7 @@ public class MainWindow extends Application {
 						if (result.get() != ButtonType.OK)
 							return;
 					}
-					
+
 					Platform.runLater(new Runnable() {
 
 						@Override
@@ -309,13 +309,13 @@ public class MainWindow extends Application {
 
 							try {
 								b.downloadFile(targetDirectory,cell.getItem());
-								
+
 								Alert alert = new Alert(AlertType.INFORMATION);
 								alert.setTitle("Download finished");
 								alert.setHeaderText("Download finished");
 								alert.setContentText("File " + cell.getItem() + " in bucket " + b.getName() + " to " + targetFile.getAbsolutePath() + ".");
 								alert.showAndWait();
-								
+
 							} catch (IOException | URISyntaxException | KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
 								Alert alert = new Alert(AlertType.ERROR);
 								alert.setTitle("Error during download");
@@ -333,10 +333,10 @@ public class MainWindow extends Application {
 			});
 
 			contextMenu.getItems().addAll(downloadItem);
-			
+
 			cell.textProperty().bind(cell.itemProperty());
 
-			
+
 			cell.emptyProperty().addListener((obs, wasEmpty, isNowEmpty) -> {
                 if (isNowEmpty) {
                     cell.setContextMenu(null);
@@ -344,7 +344,7 @@ public class MainWindow extends Application {
                     cell.setContextMenu(contextMenu);
                 }
             });
-			
+
 			//cell.setContextMenu(contextMenu);
 
 			return cell;
@@ -367,9 +367,9 @@ public class MainWindow extends Application {
 
 	private boolean establishXMLRPCConnection() {
 
-		
-		
-		
+
+
+
 		while (!xmlRPCConnectionWorks) {
 
 			Optional<Configuration> opt = showLoginDialog(config);
@@ -411,12 +411,12 @@ public class MainWindow extends Application {
 		try {
 			initBucketFSStructure();
 		} catch (Exception e) {
-			
+
 			Alert alert = new Alert(AlertType.ERROR);
 			alert.setTitle("Error during initBucketFSStructure");
 			alert.setContentText(e.getStackTrace().toString());
 			alert.showAndWait();
-			
+
 		}
 
 		for (Iterator<BucketFS> iterator = bucketFSList.iterator(); iterator.hasNext();) {
@@ -454,7 +454,7 @@ public class MainWindow extends Application {
 			// bucketName.setPrefWidth(80);
 
 			bucketName.setEditable(false);
-			
+
 			bucketName.prefColumnCountProperty().bind(bucketName.textProperty().length());
 
 			objectInfo.add(bucketName, 1, 0);
@@ -501,32 +501,32 @@ public class MainWindow extends Application {
 			Button saveButton = new Button("Save");
 
 			saveButton.setDisable(true);
-			
+
 			objectInfo.add(saveButton, 5, 1);
-			
+
 
 			ChangeListener<Object> textChanged = new ChangeListener<Object>() {
 
 				@Override
 				public void changed(ObservableValue<? extends Object> observable, Object oldValue, Object newValue) {
-					
+
 					saveButton.setDisable(false);
 
 				}
 			};
 
 			bucketDesc.textProperty().addListener(textChanged);
-		
+
 			isPub.selectedProperty().addListener(textChanged);
-			
+
 			saveButton.setOnAction(new EventHandler<ActionEvent>() {
-	            @Override 
+	            @Override
 	            public void handle(ActionEvent e) {
-	            	
+
 	            	try {
-						
+
 	            		b.editBucket(bucketDesc.getText(),isPub.isSelected());
-	            		
+
 						saveButton.setDisable(true);
 					} catch (XmlRpcException | MalformedURLException e1) {
 						Alert alert = new Alert(AlertType.ERROR);
@@ -535,11 +535,11 @@ public class MainWindow extends Application {
 						alert.setContentText(e1.getMessage());
 						alert.showAndWait();
 					}
-						
+
 	            }
-	        });			
-			
-			
+	        });
+
+
 		} else if (obj instanceof BucketFS) {
 			BucketFS b = (BucketFS) obj;
 
@@ -548,7 +548,7 @@ public class MainWindow extends Application {
 			TextField bucketName = new TextField(b.getId());
 
 			bucketName.setEditable(false);
-			
+
 			// bucketName.prefColumnCountProperty().bind(bucketName.textProperty().length());
 
 			bucketName.setMinWidth(50);
@@ -570,7 +570,7 @@ public class MainWindow extends Application {
 			TextField disk = new TextField(b.getDisk());
 
 			disk.setEditable(false);
-			
+
 			disk.setMaxWidth(70);
 
 			objectInfo.add(disk, 5, 0);
@@ -594,19 +594,19 @@ public class MainWindow extends Application {
 			objectInfo.add(new Label("Size"), 4, 1);
 
 			TextField size = new TextField(humanReadableByteCount(b.getSize(), false));
-					
+
 			size.setMaxWidth(70);
 
 			size.setEditable(false);
 
 			objectInfo.add(size, 5, 1);
-			
+
 			Button saveButton = new Button("Save");
 
 			saveButton.setDisable(true);
-			
+
 			objectInfo.add(saveButton, 6, 1);
-			
+
 			ChangeListener<String> textChanged = new ChangeListener<String>() {
 
 				@Override
@@ -617,14 +617,14 @@ public class MainWindow extends Application {
 						httpPort.setStyle("");
 					else
 						httpPort.setStyle("-fx-control-inner-background: red");
-					
+
 					if (httpsPort.getText().matches("[0-9]*") || httpsPort.getText().equals("Not set"))
 						httpsPort.setStyle("");
 					else
 						httpsPort.setStyle("-fx-control-inner-background: red");
-					
-					
-					if ( ( httpPort.getText().equals("Not set")|| httpPort.getText().matches("[0-9]*" ) ) && 
+
+
+					if ( ( httpPort.getText().equals("Not set")|| httpPort.getText().matches("[0-9]*" ) ) &&
 						( httpsPort.getText().equals("Not set")|| httpsPort.getText().matches("[0-9]*" ) ) ) {
 
 						saveButton.setDisable(false);
@@ -636,18 +636,18 @@ public class MainWindow extends Application {
 			};
 
 			bucketDesc.textProperty().addListener(textChanged);
-		
+
 			httpPort.textProperty().addListener(textChanged);
 
 			httpsPort.textProperty().addListener(textChanged);
-			
+
 			saveButton.setOnAction(new EventHandler<ActionEvent>() {
-	            @Override 
+	            @Override
 	            public void handle(ActionEvent e) {
-	            	
+
 	            	try {
 						b.editBucketFs(bucketDesc.getText(),httpPort.getText(),httpsPort.getText());
-						
+
 						saveButton.setDisable(true);
 					} catch (XmlRpcException e1) {
 						Alert alert = new Alert(AlertType.ERROR);
@@ -656,12 +656,12 @@ public class MainWindow extends Application {
 						alert.setContentText(e1.getMessage());
 						alert.showAndWait();
 					} finally {
-						
+
 						//if something went wrong the old state will be displayed
 						//reloadObjectInfo(b);
 					}
 	            }
-	        });			
+	        });
 		}
 	}
 
@@ -676,11 +676,11 @@ public class MainWindow extends Application {
 
 	private void reloadFilesOfBucket(BucketObject obj) {
 
-		
+
 		data.clear();
-		
+
 		if (obj instanceof Bucket) {
-		
+
 			Bucket bucket = (Bucket) obj;
 
 			// Check if bucket has http/https port set
@@ -819,11 +819,12 @@ public class MainWindow extends Application {
 		dialog.setTitle("EXAoperation login");
 		dialog.setHeaderText("EXAoperation login");
 
-		dialog.initStyle(StageStyle.UTILITY);
+		dialog.initStyle(StageStyle.DECORATED);
 
+		 // Get the Stage.
+		Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
 		// Set the icon (must be included in the project).
-		// dialog.setGraphic(new
-		// ImageView(this.getClass().getResource("login.png").toString()));
+		stage.getIcons().add(taskbarLogo);
 
 		// Set the button types.
 		ButtonType loginButtonType = new ButtonType("Login", ButtonData.OK_DONE);
@@ -836,29 +837,29 @@ public class MainWindow extends Application {
 		grid.setPadding(new Insets(20, 150, 10, 10));
 
 		TextField exaoperationURL = new TextField();
-		
+
 		if(config2 != null)
 			exaoperationURL.setText(config2.getUrl());
 		else
 			exaoperationURL.setText("https://");
 
-		
+
 		exaoperationURL.setPromptText("https://license_server");
 
 		TextField username = new TextField();
-		
+
 		if(config2 != null)
 			username.setText(config2.getUsername());
 		else
 			username.setText("admin");
-		
+
 		username.setPromptText("Username");
 
 		PasswordField password = new PasswordField();
-		
+
 		if(config2 != null)
 			password.setText(config2.getPassword());
-		
+
 		password.setPromptText("Password");
 
 		grid.add(new Label("EXAoperation URL"), 0, 0);
@@ -925,15 +926,15 @@ public class MainWindow extends Application {
 		return "http".equals(url.getProtocol()) || "https".equals(url.getProtocol());
 	}
 
-	
+
 	private void uploadFiles(List<File> files, Bucket bucket) {
-		
+
 		if (files != null) {
 
 			if (bucket.getWritePassword() == null)
 				bucket.setWritePassword(showPasswordDialog("Write password for " + bucket.getName(), ""));
 
-			
+
 			Service<Void> service = new Service<Void>() {
 			    @Override
 			    protected Task<Void> createTask() {
@@ -942,18 +943,18 @@ public class MainWindow extends Application {
 			            protected Void call()
 			                    throws InterruptedException {
 			                updateMessage("Uploading files. . .");
-			                
-			                
+
+
 			                int i =0;
 			                updateProgress(i, files.size());
-			                
+
 			                try {
 
 								for (File file : files) {
 									bucket.uploadFile(file);
 					                updateProgress(++i, files.size());
 				                    updateMessage("Uploaded "+file.getName());
-									
+
 								}
 
 							} catch (IOException | URISyntaxException | XmlRpcException | KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
@@ -966,17 +967,17 @@ public class MainWindow extends Application {
 							}
 
 			                updateMessage("Upload finished.");
-			               
-			                
+
+
 							Platform.runLater(new Runnable() {
 
 								@Override
 								public void run() {
 
 									try {
-										
+
 										reloadFilesOfBucket(bucket);
-										
+
 										bucket.reloadMetadata();
 									} catch (MalformedURLException | XmlRpcException e) {
 										Alert alert = new Alert(AlertType.ERROR);
@@ -989,7 +990,7 @@ public class MainWindow extends Application {
 									reloadObjectInfo(bucket);
 								}
 							});
-			               						                
+
 			                return null;
 			            }
 			        };
@@ -1005,47 +1006,47 @@ public class MainWindow extends Application {
 			GridPane grid = new GridPane();
 			grid.setHgap(10);
 			grid.setVgap(10);
-			
+
 			//grid.setPadding(new Insets(20, 150, 10, 10));
 
 			Label statusLabel = new Label("Starting upload");
-			
+
 			grid.add(statusLabel, 0, 0);
 
 			ProgressBar progbar = new ProgressBar();
-			
+
 			progbar.setMinWidth(200);
-			
+
 			grid.add(progbar, 0, 1);
 
 			progressDialog.getDialogPane().setContent(grid);
-			
+
 
 			progbar.progressProperty().bind(service.progressProperty());
-			
+
             statusLabel.textProperty().bind(service.messageProperty());
-			
+
 			progressDialog.show();
-			
+
 			service.setOnSucceeded(value -> {
 				progressDialog.setResult(Boolean.TRUE);
-		        progressDialog.close();					    
+		        progressDialog.close();
 		     }
 			);
-			
+
 			service.setOnFailed(value -> {
 				progressDialog.setResult(Boolean.FALSE);
-		        progressDialog.close();					    
+		        progressDialog.close();
 		     }
 			);
-			
+
 			service.start();
 		}
 
-		
-		
+
+
 	}
-	
+
 	class MyBucketTreeCell extends TextFieldTreeCell<BucketObject> {
 
 		Stage stage;
@@ -1077,10 +1078,10 @@ public class MainWindow extends Application {
 					fileChooser.setTitle("Choose file(s) to upload to " + bucket.getName());
 					List<File> files = fileChooser.showOpenMultipleDialog(stage);
 
-			
+
 					uploadFiles(files, bucket);
-					
-					
+
+
 				});
 
 				cm.getItems().add(openItem);
@@ -1096,7 +1097,7 @@ public class MainWindow extends Application {
 				});
 
 				cm.getItems().add(enterReadPassword);
-				
+
 				MenuItem changeReadPassword = new MenuItem("Change read password (server)");
 
 				changeReadPassword.setOnAction(event -> {
@@ -1113,7 +1114,7 @@ public class MainWindow extends Application {
 					}
 
 				});
-				
+
 				cm.getItems().add(changeReadPassword);
 
 				MenuItem enterWritePassword = new MenuItem("Enter write password (session)");
@@ -1128,7 +1129,7 @@ public class MainWindow extends Application {
 
 				cm.getItems().add(enterWritePassword);
 
-				
+
 				MenuItem changeWritePassword = new MenuItem("Change write password (server)");
 
 				changeWritePassword.setOnAction(event -> {
@@ -1145,9 +1146,9 @@ public class MainWindow extends Application {
 					}
 
 				});
-				
+
 				cm.getItems().add(changeWritePassword);
-				
+
 				// other menu items...
 				MenuItem refreshBucketItem = new MenuItem("Refresh metadata of bucket");
 				refreshBucketItem.setOnAction(event -> {
@@ -1168,7 +1169,7 @@ public class MainWindow extends Application {
 				});
 
 				cm.getItems().add(refreshBucketItem);
-				
+
 				// other menu items...
 				MenuItem deleteBucket = new MenuItem("Delete bucket");
 				deleteBucket.setOnAction(event -> {
@@ -1182,30 +1183,30 @@ public class MainWindow extends Application {
 
 					if (result.get() != ButtonType.OK)
 						return;
-					
+
 					Bucket bucket = (Bucket) item;
-					
+
 					if (!bucket.isPublic() && bucket.getReadPassword() == null)
 						bucket.setReadPassword(showPasswordDialog("Read password for " + bucket.getName(), ""));
-					
+
 					if (bucket.getWritePassword() == null)
 						bucket.setWritePassword(showPasswordDialog("Write password for " + bucket.getId(), ""));
-					
+
 					try {
 						bucket.getBucketFS().deleteBucket(bucket);
-						
+
 						 TreeItem<BucketObject> c = (TreeItem<BucketObject>)treeView.getSelectionModel().getSelectedItem();
 				         c.getParent().getChildren().remove(c);
-						
+
 					} catch (XmlRpcException | KeyManagementException | NoSuchAlgorithmException | KeyStoreException | IOException | URISyntaxException e) {
-						
+
 						Alert alert2 = new Alert(AlertType.ERROR);
 						alert2.setTitle("Error during bucket delete");
 						alert2.setContentText(e.getMessage());
 						alert2.showAndWait();
-						
-					} 
-					
+
+					}
+
 				});
 
 				cm.getItems().add(deleteBucket);
@@ -1220,7 +1221,7 @@ public class MainWindow extends Application {
 					Optional<Bucket> opt = openCreateBucketDialog(bucketFS);
 
 					Platform.runLater(new Runnable() {
-						
+
 						@Override
 						public void run() {
 							if (opt.isPresent()) {
@@ -1242,7 +1243,7 @@ public class MainWindow extends Application {
 										.add(new TreeItem<BucketObject>(b, new ImageView(bucketIcon)));
 
 							}
-							
+
 						}
 					});
 
@@ -1252,42 +1253,42 @@ public class MainWindow extends Application {
 
 				MenuItem deleteBucketFS = new MenuItem("Delete BucketFS");
 				deleteBucketFS.setOnAction(event -> {
-					
+
 					BucketFS bucketFS = (BucketFS) item;
 
 					if( bucketFS.getBuckets().size() > 0 ) {
-						
+
 						Alert alert = new Alert(AlertType.ERROR);
 						alert.setTitle("BucketFS not empty");
 						alert.setHeaderText("The BucketFS " + item+ " is not empty!");
 						alert.setContentText("Can't delete this BucketFS, because it still contains buckets.");
 						alert.showAndWait();
-						
+
 						return;
 					}
-					
+
 					Alert alert = new Alert(AlertType.CONFIRMATION);
 					alert.setTitle("Confirm delete.");
 					alert.setHeaderText("Delete BucketFS " + item+ "?");
 					alert.setContentText("Do you really want to delete this BucketFS");
-					
+
 					Optional<ButtonType> result = alert.showAndWait();
 
 					if (result.get() != ButtonType.OK)
 						return;
-					
+
 					Platform.runLater(new Runnable() {
 						public void run() {
-							// delete bucketFS 
+							// delete bucketFS
 							try {
 								bucketFS.delete();
-								
+
 								// delete in Tree
 								TreeItem<BucketObject> c = (TreeItem<BucketObject>)treeView.getSelectionModel().getSelectedItem();
 						        c.getParent().getChildren().remove(c);
-								
+
 							} catch (XmlRpcException e) {
-								
+
 								Alert alert1 = new Alert(AlertType.ERROR);
 								alert1.setTitle("Error during BucketFS deletion");
 								alert1.setHeaderText("Can't delete " + bucketFS.getId() + ".");
@@ -1296,7 +1297,7 @@ public class MainWindow extends Application {
 							}
 						}
 					});
-					
+
 				});
 
 				cm.getItems().add(deleteBucketFS);
@@ -1306,7 +1307,7 @@ public class MainWindow extends Application {
 			MenuItem createBucket = new MenuItem("Create BucketFS");
 
 			createBucket.setOnAction(event -> {
-				
+
 				Optional<BucketFS> opt = openCreateBucketFSDialog(((BucketFS) treeView.getRoot().getChildren().get(0).getValue()).getDisk());
 
 				Platform.runLater(new Runnable() {
@@ -1331,12 +1332,12 @@ public class MainWindow extends Application {
 						}
 					}
 				});
-				
+
 			});
 
 			cm.getItems().add(createBucket);
-			
-			
+
+
 			// other menu items...
 
 			MenuItem reloadItem = new MenuItem("Reset tree");
@@ -1378,7 +1379,7 @@ public class MainWindow extends Application {
 					okButton.setDisable(false);
 
 				}else {
-					
+
 					okButton.setDisable(true);
 
 				}
@@ -1395,7 +1396,7 @@ public class MainWindow extends Application {
 
 		// Set the icon (must be included in the project).
 		// dialog.setGraphic(new
-		// ImageView(this.getClass().getResource("/exasol.png").toString()));
+		// ImageView(this.getClass().getResource("/taskbarLogo.png").toString()));
 
 		// Set the button types.
 		dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -1482,13 +1483,13 @@ public class MainWindow extends Application {
 	}
 
 	private TextField disk;
-	
+
 	private TextField httpPort;
-	
+
 	private TextField httpsPort ;
-	
+
 	private Node okButton2;
-	
+
 	public Optional<BucketFS> openCreateBucketFSDialog(String diskName) {
 		ChangeListener<String> textChanged = new ChangeListener<String>() {
 
@@ -1500,16 +1501,16 @@ public class MainWindow extends Application {
 					httpPort.setStyle("");
 				else
 					httpPort.setStyle("-fx-control-inner-background: red");
-				
+
 				if (httpsPort.getText().matches("[0-9]*"))
 					httpsPort.setStyle("");
 				else
 					httpsPort.setStyle("-fx-control-inner-background: red");
-				
-				
-				if ( ( httpPort.getText().length() == 0 || httpPort.getText().matches("[0-9]*" ) ) && 
-					( httpsPort.getText().length() == 0 || httpsPort.getText().matches("[0-9]*" ) ) && 
-						
+
+
+				if ( ( httpPort.getText().length() == 0 || httpPort.getText().matches("[0-9]*" ) ) &&
+					( httpsPort.getText().length() == 0 || httpsPort.getText().matches("[0-9]*" ) ) &&
+
 						disk.getText().length() > 0   ) {
 
 					okButton2.setDisable(false);
@@ -1530,7 +1531,7 @@ public class MainWindow extends Application {
 
 		// Set the icon (must be included in the project).
 		// dialog.setGraphic(new
-		// ImageView(this.getClass().getResource("/exasol.png").toString()));
+		// ImageView(this.getClass().getResource("/taskbarLogo.png").toString()));
 
 		// Set the button types.
 		dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -1564,7 +1565,7 @@ public class MainWindow extends Application {
 		httpsPort = new TextField();
 
 		grid.add(httpsPort, 1, 4);
-			
+
 		// Enable/Disable OK Button depending on all information is entered and
 		// valid
 		okButton2 = dialog.getDialogPane().lookupButton(ButtonType.OK);
@@ -1573,11 +1574,11 @@ public class MainWindow extends Application {
 		bucketFSDesc.textProperty().addListener(textChanged);
 
 		disk.textProperty().addListener(textChanged);
-		
+
 		httpPort.textProperty().addListener(textChanged);
-		
+
 		httpsPort.textProperty().addListener(textChanged);
-		
+
 		dialog.getDialogPane().setContent(grid);
 
 		// Request focus on the bucketName field by default.
