@@ -2,6 +2,10 @@
 
 The BucketFS explorer is a tiny GUI written in Java/JavaFX that helps you working with BucketFS.
 
+# Deprecation Note
+
+⚠ **This project is no longer maintained.**
+
 ###### Please note that this is an open source project which is *not officially supported* by EXASOL. We will try to help you as much as possible, but can't guarantee anything since this is not an official EXASOL product. 
 
 BucketFS explorer is deprecated and NOT maintained any longer.
